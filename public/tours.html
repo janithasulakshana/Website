@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tours - Trail Colombo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="container mt-5">
+
+<h2 class="mb-4">Our Colombo Tours</h2>
+
+<div class="row mb-5">
+    <div class="col-md-4">
+        <div class="card">
+            <img src="images/galle-face.jpg" class="card-img-top" alt="Galle Face">
+            <div class="card-body">
+                <h5 class="card-title">Galle Face & City Walk</h5>
+                <p class="card-text">$40 / 4 hours</p>
+                <a href="#booking-form" class="btn btn-primary">Book Now</a>
+                <a href="https://wa.me/94771234567?text=Hi%20Janiya!%20I%20want%20to%20book%20Galle%20Face%20Tour" target="_blank" class="btn btn-success mt-1">WhatsApp</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <img src="images/lotus-tower.jpg" class="card-img-top" alt="Lotus Tower">
+            <div class="card-body">
+                <h5 class="card-title">Lotus Tower Visit</h5>
+                <p class="card-text">$50 / 3 hours</p>
+                <a href="#booking-form" class="btn btn-primary">Book Now</a>
+                <a href="https://wa.me/94771234567?text=Hi%20Janiya!%20I%20want%20to%20book%20Lotus%20Tower%20Tour" target="_blank" class="btn btn-success mt-1">WhatsApp</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <img src="images/gangaramaya.jpg" class="card-img-top" alt="Gangaramaya Temple">
+            <div class="card-body">
+                <h5 class="card-title">Temple & Museum Tour</h5>
+                <p class="card-text">$75 / Full Day</p>
+                <a href="#booking-form" class="btn btn-primary">Book Now</a>
+                <a href="https://wa.me/94771234567?text=Hi%20Janiya!%20I%20want%20to%20book Temple & Museum Tour" target="_blank" class="btn btn-success mt-1">WhatsApp</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3 id="booking-form" class="mb-3">Book Your Tour</h3>
+
+<form action="/book" method="POST" class="mb-5">
+    <input type="text" name="name" placeholder="Your Name" class="form-control mb-2" required>
+    <input type="email" name="email" placeholder="Email" class="form-control mb-2" required>
+    <input type="text" name="phone" placeholder="Phone" class="form-control mb-2" required>
+    <select name="tour" class="form-control mb-2">
+        <option>Galle Face & City Walk</option>
+        <option>Lotus Tower Visit</option>
+        <option>Temple & Museum Tour</option>
+    </select>
+    <input type="date" name="date" class="form-control mb-2" required>
+    <button type="submit" class="btn btn-success">Book Now</button>
+</form>
+
+</body>
+</html>
