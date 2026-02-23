@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const bodyParser = require("body-parser");
@@ -5,12 +6,58 @@ const cors = require("cors");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const validator = require("validator");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+
+// Get environment variables
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const DATABASE_PATH = process.env.DATABASE_PATH || "./bookings.db";
+const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || "127.0.0.1";
+
+if (!process.env.JWT_SECRET) {
+    console.warn("WARNING: JWT_SECRET not set in .env file. Using default value. This is not secure for production!");
+}
 
 const app = express();
-app.use(bodyParser.json());
-app.use(cors());
 
-const db = new sqlite3.Database("./bookings.db");
+// Security middleware
+app.use(helmet());
+app.use(bodyParser.json({ limit: "10mb" }));
+
+// CORS with restricted origins
+const corsOptions = {
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    optionsSuccessStatus: 200,
+    credentials: true
+};
+app.use(cors(corsOptions));
+
+// Rate limiting
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 attempts
+    message: "Too many login attempts, please try again later",
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+const bookingLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 3, // 3 bookings per minute
+    message: "Too many booking attempts, please try again later",
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+const db = new sqlite3.Database(DATABASE_PATH, (err) => {
+    if (err) {
+        console.error("Database error:", err.message);
+    } else {
+        console.log("Connected to SQLite database");
+    }
+});
 
 // Create tables
 db.run(`CREATE TABLE IF NOT EXISTS tours (
@@ -42,78 +89,176 @@ db.run(`CREATE TABLE IF NOT EXISTS admins (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )`);
 
+// Generic error response (don't expose details)
+const sendErrorResponse = (res, statusCode = 500, message = "An error occurred") => {
+    res.status(statusCode).json({ success: false, error: message });
+};
+
 // Middleware for admin authentication
 const authenticateAdmin = (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ error: "No token provided" });
+    if (!token) return sendErrorResponse(res, 401, "Unauthorized");
     
     try {
-        const decoded = jwt.verify(token, "your-secret-key");
+        const decoded = jwt.verify(token, JWT_SECRET);
         req.admin = decoded;
         next();
     } catch (err) {
-        res.status(403).json({ error: "Invalid token" });
+        // Don't expose token error details
+        return sendErrorResponse(res, 403, "Unauthorized");
     }
+};
+
+// Input validation helper
+const validateEmail = (email) => {
+    return validator.isEmail(email);
+};
+
+const validatePhone = (phone) => {
+    // Accept 10-15 digit phone numbers
+    const phoneRegex = /^\d{10,15}$/;
+    return phoneRegex.test(phone.replace(/\D/g, ""));
+};
+
+const validateName = (name) => {
+    return validator.isLength(name, { min: 2, max: 100 }) && 
+           !validator.contains(name, "<") && 
+           !validator.contains(name, ">");
+};
+
+const validateDate = (dateString) => {
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date) && date > new Date();
+};
+
+const validatePrice = (price) => {
+    const num = parseFloat(price);
+    return !isNaN(num) && num > 0;
 };
 
 // Tours API
 app.get("/api/tours", (req, res) => {
-    db.all("SELECT * FROM tours", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
+    db.all("SELECT id, title, price, description, image, whatsapp FROM tours ORDER BY created_at DESC", [], (err, rows) => {
+        if (err) {
+            console.error("Database error:", err);
+            return sendErrorResponse(res, 500, "Failed to retrieve tours");
+        }
+        res.json(rows || []);
     });
 });
 
 app.post("/api/tours", authenticateAdmin, (req, res) => {
     const { title, price, description, image, whatsapp } = req.body;
-    if (!title || !price) return res.status(400).json({ error: "Missing required fields" });
+    
+    // Validate input
+    if (!title || !validateName(title)) {
+        return sendErrorResponse(res, 400, "Invalid tour title");
+    }
+    if (!price || !validatePrice(price)) {
+        return sendErrorResponse(res, 400, "Invalid tour price");
+    }
+    if (description && !validator.isLength(description, { max: 1000 })) {
+        return sendErrorResponse(res, 400, "Description too long");
+    }
+    
+    const sanitizedTitle = validator.escape(title);
+    const sanitizedDescription = validator.escape(description || "");
+    const sanitizedImage = validator.isURL(image) ? image : "";
+    const sanitizedWhatsapp = whatsapp ? validator.escape(whatsapp) : "";
     
     db.run(
         `INSERT INTO tours (title, price, description, image, whatsapp) VALUES (?, ?, ?, ?, ?)`,
-        [title, price, description, image, whatsapp],
+        [sanitizedTitle, price, sanitizedDescription, sanitizedImage, sanitizedWhatsapp],
         function(err) {
-            if (err) return res.status(500).json({ error: err.message });
+            if (err) {
+                console.error("Database error:", err);
+                return sendErrorResponse(res, 500, "Failed to create tour");
+            }
             res.json({ success: true, id: this.lastID });
         }
     );
 });
 
 app.delete("/api/tours/:id", authenticateAdmin, (req, res) => {
-    db.run("DELETE FROM tours WHERE id = ?", [req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+    const tourId = parseInt(req.params.id);
+    
+    if (isNaN(tourId)) {
+        return sendErrorResponse(res, 400, "Invalid tour ID");
+    }
+    
+    db.run("DELETE FROM tours WHERE id = ?", [tourId], function(err) {
+        if (err) {
+            console.error("Database error:", err);
+            return sendErrorResponse(res, 500, "Failed to delete tour");
+        }
         res.json({ success: true });
     });
 });
 
 // Bookings API
 app.get("/api/bookings", authenticateAdmin, (req, res) => {
-    db.all("SELECT b.*, t.title as tour_title FROM bookings b JOIN tours t ON b.tour_id = t.id", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+    db.all(
+        "SELECT b.id, b.name, b.email, b.phone, b.tour_id, b.date, b.status, b.created_at, t.title as tour_title FROM bookings b JOIN tours t ON b.tour_id = t.id ORDER BY b.created_at DESC",
+        [],
+        (err, rows) => {
+            if (err) {
+                console.error("Database error:", err);
+                return sendErrorResponse(res, 500, "Failed to retrieve bookings");
+            }
+            res.json(rows || []);
+        }
+    );
 });
 
-app.post("/api/bookings", (req, res) => {
+app.post("/api/bookings", bookingLimiter, (req, res) => {
     const { name, email, phone, tour_id, date } = req.body;
     
     // Validate input
-    if (!name || !email || !phone || !tour_id || !date) {
-        return res.status(400).json({ error: "Missing required fields" });
+    if (!validateName(name)) {
+        return sendErrorResponse(res, 400, "Invalid name");
+    }
+    if (!validateEmail(email)) {
+        return sendErrorResponse(res, 400, "Invalid email");
+    }
+    if (!validatePhone(phone)) {
+        return sendErrorResponse(res, 400, "Invalid phone number");
+    }
+    if (!tour_id || isNaN(parseInt(tour_id))) {
+        return sendErrorResponse(res, 400, "Invalid tour ID");
+    }
+    if (!validateDate(date)) {
+        return sendErrorResponse(res, 400, "Invalid booking date");
     }
     
-    // Get tour details
-    db.get("SELECT * FROM tours WHERE id = ?", [tour_id], (err, tour) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!tour) return res.status(404).json({ error: "Tour not found" });
+    const sanitizedName = validator.escape(name);
+    const sanitizedEmail = validator.normalizeEmail(email);
+    const sanitizedPhone = validator.escape(phone);
+    const tourId = parseInt(tour_id);
+    
+    // Check if tour exists
+    db.get("SELECT id FROM tours WHERE id = ?", [tourId], (err, tour) => {
+        if (err) {
+            console.error("Database error:", err);
+            return sendErrorResponse(res, 500, "Failed to process booking");
+        }
+        if (!tour) {
+            return sendErrorResponse(res, 404, "Tour not found");
+        }
         
+        // Create booking
         db.run(
             `INSERT INTO bookings (name, email, phone, tour_id, date) VALUES (?, ?, ?, ?, ?)`,
-            [name, email, phone, tour_id, date],
+            [sanitizedName, sanitizedEmail, sanitizedPhone, tourId, date],
             function(err) {
-                if (err) return res.status(500).json({ error: err.message });
+                if (err) {
+                    console.error("Database error:", err);
+                    return sendErrorResponse(res, 500, "Failed to create booking");
+                }
                 
-                // Send confirmation email (optional)
-                sendBookingConfirmation(email, name, tour.title, date);
+                // Send confirmation email (async, don't wait)
+                sendBookingConfirmation(sanitizedEmail, sanitizedName, tourId).catch(err => {
+                    console.error("Email error:", err.message);
+                });
                 
                 res.json({ success: true, id: this.lastID });
             }
@@ -123,57 +268,164 @@ app.post("/api/bookings", (req, res) => {
 
 app.put("/api/bookings/:id", authenticateAdmin, (req, res) => {
     const { status } = req.body;
-    if (!status) return res.status(400).json({ error: "Status required" });
+    const bookingId = parseInt(req.params.id);
     
-    db.run("UPDATE bookings SET status = ? WHERE id = ?", [status, req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+    if (isNaN(bookingId)) {
+        return sendErrorResponse(res, 400, "Invalid booking ID");
+    }
+    
+    const validStatuses = ["pending", "confirmed", "completed", "cancelled"];
+    if (!status || !validStatuses.includes(status)) {
+        return sendErrorResponse(res, 400, "Invalid status");
+    }
+    
+    db.run("UPDATE bookings SET status = ? WHERE id = ?", [status, bookingId], function(err) {
+        if (err) {
+            console.error("Database error:", err);
+            return sendErrorResponse(res, 500, "Failed to update booking");
+        }
         res.json({ success: true });
     });
 });
 
 app.delete("/api/bookings/:id", authenticateAdmin, (req, res) => {
-    db.run("DELETE FROM bookings WHERE id = ?", [req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+    const bookingId = parseInt(req.params.id);
+    
+    if (isNaN(bookingId)) {
+        return sendErrorResponse(res, 400, "Invalid booking ID");
+    }
+    
+    db.run("DELETE FROM bookings WHERE id = ?", [bookingId], function(err) {
+        if (err) {
+            console.error("Database error:", err);
+            return sendErrorResponse(res, 500, "Failed to delete booking");
+        }
         res.json({ success: true });
     });
 });
 
 // Admin Authentication
-app.post("/api/admin/register", (req, res) => {
+app.post("/api/admin/register", loginLimiter, (req, res) => {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: "Email and password required" });
     
-    const hashedPassword = bcrypt.hashSync(password, 10);
+    // Validate input
+    if (!validateEmail(email)) {
+        return sendErrorResponse(res, 400, "Invalid email format");
+    }
+    
+    if (!password || password.length < 8) {
+        return sendErrorResponse(res, 400, "Password must be at least 8 characters");
+    }
+    
+    const sanitizedEmail = validator.normalizeEmail(email);
+    
+    // Hash password with 12 salt rounds (improved security)
+    const hashedPassword = bcrypt.hashSync(password, 12);
+    
     db.run(
         `INSERT INTO admins (email, password) VALUES (?, ?)`,
-        [email, hashedPassword],
+        [sanitizedEmail, hashedPassword],
         function(err) {
-            if (err) return res.status(500).json({ error: "Email already exists" });
+            if (err) {
+                console.error("Database error:", err);
+                // Don't reveal if email already exists (information disclosure)
+                return sendErrorResponse(res, 400, "Failed to register admin");
+            }
             res.json({ success: true });
         }
     );
 });
 
-app.post("/api/admin/login", (req, res) => {
+app.post("/api/admin/login", loginLimiter, (req, res) => {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: "Email and password required" });
     
-    db.get("SELECT * FROM admins WHERE email = ?", [email], (err, admin) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!admin) return res.status(401).json({ error: "Invalid credentials" });
+    if (!validateEmail(email) || !password) {
+        return sendErrorResponse(res, 400, "Invalid credentials");
+    }
+    
+    const sanitizedEmail = validator.normalizeEmail(email);
+    
+    db.get("SELECT id, email, password FROM admins WHERE email = ?", [sanitizedEmail], (err, admin) => {
+        if (err) {
+            console.error("Database error:", err);
+            return sendErrorResponse(res, 500, "Authentication failed");
+        }
         
+        if (!admin) {
+            return sendErrorResponse(res, 401, "Invalid credentials");
+        }
+        
+        // Compare password
         const isValidPassword = bcrypt.compareSync(password, admin.password);
-        if (!isValidPassword) return res.status(401).json({ error: "Invalid credentials" });
+        if (!isValidPassword) {
+            return sendErrorResponse(res, 401, "Invalid credentials");
+        }
         
-        const token = jwt.sign({ id: admin.id, email: admin.email }, "your-secret-key", { expiresIn: "24h" });
+        // Generate JWT token with 24-hour expiration
+        const token = jwt.sign(
+            { id: admin.id, email: admin.email },
+            JWT_SECRET,
+            { expiresIn: "24h" }
+        );
+        
         res.json({ success: true, token });
     });
 });
 
-// Email notification function (mock - integrate with nodemailer for real emails)
-function sendBookingConfirmation(email, name, tourTitle, date) {
-    // TODO: Implement with nodemailer for real email sending
-    console.log(`Booking confirmation sent to ${email}`);
+// Test endpoint
+app.get("/api/test", (req, res) => {
+    res.json({ success: true, message: "API is working" });
+});
+
+// Email notification function
+async function sendBookingConfirmation(email, name, tourId) {
+    try {
+        // TODO: Integrate with nodemailer for production
+        // For now, just log the confirmation
+        console.log(`✓ Booking confirmation sent to ${email}`);
+    } catch (err) {
+        console.error(`Failed to send email to ${email}:`, err.message);
+        throw err;
+    }
 }
 
-app.listen(5000, "127.0.0.1", () => console.log("Backend running at http://localhost:5000"));
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error("Unhandled error:", err);
+    sendErrorResponse(res, 500, "Internal server error");
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ success: false, error: "Endpoint not found" });
+});
+
+// Start server
+const server = app.listen(PORT, HOST, () => {
+    console.log(`✓ Backend running at http://${HOST}:${PORT}`);
+    console.log(`✓ Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`✓ CORS origin: ${corsOptions.origin}`);
+});
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+    console.log("SIGTERM signal received: closing HTTP server");
+    server.close(() => {
+        console.log("HTTP server closed");
+        db.close((err) => {
+            if (err) console.error("Database close error:", err);
+            process.exit(0);
+        });
+    });
+});
+
+process.on("SIGINT", () => {
+    console.log("SIGINT signal received: closing HTTP server");
+    server.close(() => {
+        console.log("HTTP server closed");
+        db.close((err) => {
+            if (err) console.error("Database close error:", err);
+            process.exit(0);
+        });
+    });
+});

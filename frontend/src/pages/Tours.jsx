@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import TourCard from "../components/TourCard";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_CONFIG } from "../config/constants";
 
 export default function Tours() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function Tours() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/tours")
+      .get(`${API_CONFIG.baseURL}/api/tours`)
       .then(res => {
         setTours(res.data);
         if (res.data.length > 0) {
@@ -39,7 +40,7 @@ export default function Tours() {
         return;
       }
 
-      await axios.post("http://localhost:5000/api/bookings", form);
+      await axios.post(`${API_CONFIG.baseURL}/api/bookings`, form);
       navigate("/success");
     } catch (err) {
       setError(err.response?.data?.error || "Booking failed. Please try again.");

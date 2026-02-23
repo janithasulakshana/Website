@@ -8,25 +8,16 @@ import Admin from "./pages/Admin";
 export default function App() {
   return (
     <Router>
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div className="container">
-          <Link className="navbar-brand" to="/">Trail Colombo by Janiya</Link>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto">
-              <li className="nav-item">
-                <Link className="nav-link" to="/">Home</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/tours">Tours</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/admin">Admin</Link>
-              </li>
-            </ul>
-          </div>
+      <nav style={{ backgroundColor: "#333", padding: "12px 0", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Link to="/" style={{ color: "white", textDecoration: "none", fontSize: "20px", fontWeight: "bold" }}>
+            Trail Colombo by Janiya
+          </Link>
+          <ul style={{ display: "flex", listStyle: "none", margin: "0", padding: "0", gap: "30px" }}>
+            <li><Link to="/" style={{ color: "white", textDecoration: "none" }}>Home</Link></li>
+            <li><Link to="/tours" style={{ color: "white", textDecoration: "none" }}>Tours</Link></li>
+            <li><Link to="/admin" style={{ color: "white", textDecoration: "none" }}>Admin</Link></li>
+          </ul>
         </div>
       </nav>
 

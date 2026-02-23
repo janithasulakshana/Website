@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { API_CONFIG } from "../config/constants";
 
 export default function Admin() {
   const [bookings, setBookings] = useState([]);
@@ -20,7 +21,7 @@ export default function Admin() {
 
   const fetchBookings = () => {
     axios
-      .get("http://localhost:5000/api/bookings", {
+      .get(`${API_CONFIG.baseURL}/api/bookings`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => setBookings(res.data))
@@ -29,7 +30,7 @@ export default function Admin() {
 
   const fetchTours = () => {
     axios
-      .get("http://localhost:5000/api/tours")
+      .get(`${API_CONFIG.baseURL}/api/tours`)
       .then(res => setTours(res.data))
       .catch(err => setError("Failed to fetch tours"));
   };
@@ -39,7 +40,7 @@ export default function Admin() {
     setError("");
     
     try {
-      const res = await axios.post("http://localhost:5000/api/admin/login", loginForm);
+      const res = await axios.post(`${API_CONFIG.baseURL}/api/admin/login`, loginForm);
       localStorage.setItem("adminToken", res.data.token);
       setToken(res.data.token);
       setLoginForm({ email: "", password: "" });
@@ -59,7 +60,7 @@ export default function Admin() {
     if (!window.confirm("Delete this booking?")) return;
     
     try {
-      await axios.delete(`http://localhost:5000/api/bookings/${id}`, {
+      await axios.delete(`${API_CONFIG.baseURL}/api/bookings/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuccess("Booking deleted");
@@ -74,7 +75,7 @@ export default function Admin() {
     setError("");
 
     try {
-      await axios.post("http://localhost:5000/api/tours", tourForm, {
+      await axios.post(`${API_CONFIG.baseURL}/api/tours`, tourForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuccess("Tour added successfully");
@@ -90,7 +91,7 @@ export default function Admin() {
     if (!window.confirm("Delete this tour?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/tours/${id}`, {
+      await axios.delete(`${API_CONFIG.baseURL}/api/tours/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuccess("Tour deleted");
