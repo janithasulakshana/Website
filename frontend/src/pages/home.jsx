@@ -32,7 +32,7 @@ export default function Home() {
                 <p><strong>Duration:</strong> {tour.duration}</p>
                 <p><strong>Price:</strong> <span style={{ fontSize: "24px", color: "#007bff", fontWeight: "bold" }}>${tour.price}</span></p>
                 <p>{tour.description}</p>
-                <Link to="/tours" style={{ display: "block", padding: "10px", backgroundColor: "#007bff", color: "white", textDecoration: "none", borderRadius: "5px", textAlign: "center", marginTop: "10px", fontWeight: "bold" }}>Book Now</Link>
+                <Link to={`/booking?tour=${tour.id}`} style={{ display: "block", padding: "10px", backgroundColor: "#007bff", color: "white", textDecoration: "none", borderRadius: "5px", textAlign: "center", marginTop: "10px", fontWeight: "bold" }}>Book Now</Link>
               </div>
             </div>
           ))}
@@ -76,7 +76,7 @@ export default function Home() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "15px" }}>
             <a href={`tel:${CONTACT_INFO.phone}`} style={{ padding: "15px", backgroundColor: "white", color: "#007bff", textDecoration: "none", borderRadius: "5px", fontWeight: "bold" }}>📞 {CONTACT_INFO.phoneFormatted}</a>
             <a href={`mailto:${CONTACT_INFO.email}`} style={{ padding: "15px", backgroundColor: "white", color: "#007bff", textDecoration: "none", borderRadius: "5px", fontWeight: "bold" }}>✉️ {CONTACT_INFO.email}</a>
-            <Link to="/tours" style={{ padding: "15px", backgroundColor: "#ffc107", color: "#333", textDecoration: "none", borderRadius: "5px", fontWeight: "bold" }}>📅 Book Online</Link>
+            <Link to="/booking" style={{ padding: "15px", backgroundColor: "#ffc107", color: "#333", textDecoration: "none", borderRadius: "5px", fontWeight: "bold" }}>📅 Book Online</Link>
           </div>
         </div>
       </div>

@@ -4,16 +4,16 @@
  */
 
 export const CONTACT_INFO = {
-  phone: "0768465747",
-  phoneFormatted: "+94 76 846 5747",
-  email: "info@trailcolombo.com",
-  whatsapp: "0768465747",
-  facebook: "https://www.facebook.com/trailcolombo",
+  phone: "0703097737",
+  phoneFormatted: "+94 70 309 7737",
+  email: "letsgocolombotoursbyj@gmail.com",
+  whatsapp: "0703097737",
+  facebook: "https://www.facebook.com/share/1FBPQpwss7/?mibextid=wwXIfr",
   instagram: "https://www.instagram.com/trailcolombo"
 };
 
 export const COMPANY_INFO = {
-  name: "Trail Colombo by Janiya",
+  name: "Lets Go Colombo Tours by J",
   tagline: "Explore Colombo Like Never Before",
   description: "Discover the vibrant culture, historic landmarks, and modern attractions of Colombo with our expertly curated city tours.",
   yearsInBusiness: "10+",
@@ -141,7 +141,7 @@ export const TESTIMONIALS = [
 ];
 
 export const ADMIN_CREDENTIALS = {
-  defaultEmail: "admin@trailcolombo.com",
+  defaultEmail: "letsgocolombotoursbyj@gmail.com",
   defaultPassword: "admin123"
 };
 
@@ -170,9 +170,9 @@ export const COMMITMENT_POINTS = [
 ];
 
 export const SOCIAL_MEDIA = {
-  facebook: "https://www.facebook.com/trailcolombo",
+  facebook: "https://www.facebook.com/share/1FBPQpwss7/?mibextid=wwXIfr",
   instagram: "https://www.instagram.com/trailcolombo",
-  whatsapp: "https://wa.me/0768465747",
+  whatsapp: "https://wa.me/94703097737",
   twitter: "https://twitter.com/trailcolombo"
 };
 
