@@ -127,8 +127,14 @@ const validateName = (name) => {
 };
 
 const validateDate = (dateString) => {
-    const date = new Date(dateString);
-    return date instanceof Date && !isNaN(date) && date > new Date();
+    // Validate date format YYYY-MM-DD
+    if (typeof dateString !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        return false;
+    }
+    const date = new Date(dateString + 'T00:00:00Z');
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return !isNaN(date.getTime()) && date >= now;
 };
 
 const validatePrice = (price) => {
@@ -210,60 +216,78 @@ app.get("/api/bookings", authenticateAdmin, (req, res) => {
     );
 });
 
-app.post("/api/bookings", bookingLimiter, (req, res) => {
-    const { name, email, phone, tour_id, date } = req.body;
-    
-    // Validate input
-    if (!validateName(name)) {
-        return sendErrorResponse(res, 400, "Invalid name");
-    }
-    if (!validateEmail(email)) {
-        return sendErrorResponse(res, 400, "Invalid email");
-    }
-    if (!validatePhone(phone)) {
-        return sendErrorResponse(res, 400, "Invalid phone number");
-    }
-    if (!tour_id || isNaN(parseInt(tour_id))) {
-        return sendErrorResponse(res, 400, "Invalid tour ID");
-    }
-    if (!validateDate(date)) {
-        return sendErrorResponse(res, 400, "Invalid booking date");
-    }
-    
-    const sanitizedName = validator.escape(name);
-    const sanitizedEmail = validator.normalizeEmail(email);
-    const sanitizedPhone = validator.escape(phone);
-    const tourId = parseInt(tour_id);
-    
-    // Check if tour exists
-    db.get("SELECT id FROM tours WHERE id = ?", [tourId], (err, tour) => {
-        if (err) {
-            console.error("Database error:", err);
-            return sendErrorResponse(res, 500, "Failed to process booking");
+app.post("/api/bookings", (req, res) => {
+    try {
+        console.log("=== POST /api/bookings ===");
+        console.log("Request body:", req.body);
+        const { name, email, phone, tour_id, date } = req.body;
+        
+        // Validate input
+        if (!validateName(name)) {
+            console.log("❌ Name validation failed");
+            return sendErrorResponse(res, 400, "Invalid name");
         }
-        if (!tour) {
-            return sendErrorResponse(res, 404, "Tour not found");
+        if (!validateEmail(email)) {
+            console.log("❌ Email validation failed");
+            return sendErrorResponse(res, 400, "Invalid email");
+        }
+        if (!validatePhone(phone)) {
+            console.log("❌ Phone validation failed");
+            return sendErrorResponse(res, 400, "Invalid phone number");
+        }
+        if (!tour_id || isNaN(parseInt(tour_id))) {
+            console.log("❌ Tour ID validation failed");
+            return sendErrorResponse(res, 400, "Invalid tour ID");
+        }
+        if (!validateDate(date)) {
+            console.log("❌ Date validation failed");
+            return sendErrorResponse(res, 400, "Invalid booking date");
         }
         
-        // Create booking
-        db.run(
-            `INSERT INTO bookings (name, email, phone, tour_id, date) VALUES (?, ?, ?, ?, ?)`,
-            [sanitizedName, sanitizedEmail, sanitizedPhone, tourId, date],
-            function(err) {
-                if (err) {
-                    console.error("Database error:", err);
-                    return sendErrorResponse(res, 500, "Failed to create booking");
-                }
-                
-                // Send confirmation email (async, don't wait)
-                sendBookingConfirmation(sanitizedEmail, sanitizedName, tourId).catch(err => {
-                    console.error("Email error:", err.message);
-                });
-                
-                res.json({ success: true, id: this.lastID });
+        console.log("✓ All validations passed");
+        const sanitizedName = validator.escape(name);
+        const sanitizedEmail = validator.normalizeEmail(email);
+        const sanitizedPhone = validator.escape(phone);
+        const tourId = parseInt(tour_id);
+        
+        // Check if tour exists
+        console.log("Checking if tour exists: ID =", tourId);
+        db.get("SELECT id FROM tours WHERE id = ?", [tourId], (err, tour) => {
+            if (err) {
+                console.error("❌ Database error:", err);
+                return sendErrorResponse(res, 500, "Failed to process booking");
             }
-        );
-    });
+            if (!tour) {
+                console.log("❌ Tour not found");
+                return sendErrorResponse(res, 404, "Tour not found");
+            }
+            
+            console.log("✓ Tour found, creating booking...");
+            // Create booking
+            db.run(
+                `INSERT INTO bookings (name, email, phone, tour_id, date) VALUES (?, ?, ?, ?, ?)`,
+                [sanitizedName, sanitizedEmail, sanitizedPhone, tourId, date],
+                function(err) {
+                    if (err) {
+                        console.error("❌ Database insert error:", err);
+                        return sendErrorResponse(res, 500, "Failed to create booking");
+                    }
+                    
+                    console.log("✓✓✓ Booking created successfully with ID:", this.lastID);
+                    
+                    // Send confirmation email (async, don't wait)
+                    sendBookingConfirmation(sanitizedEmail, sanitizedName, tourId).catch(err => {
+                        console.error("Email error:", err.message);
+                    });
+                    
+                    res.json({ success: true, id: this.lastID });
+                }
+            );
+        });
+    } catch (error) {
+        console.error("❌ UNCAUGHT ERROR in POST /api/bookings:", error);
+        sendErrorResponse(res, 500, "Internal server error");
+    }
 });
 
 app.put("/api/bookings/:id", authenticateAdmin, (req, res) => {

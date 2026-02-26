@@ -38,35 +38,67 @@ export default function Contact() {
             
             <div style={{ marginBottom: "30px" }}>
               <h4 style={{ color: "#007bff", marginBottom: "10px" }}>📞 Phone</h4>
-              <a href={`tel:${CONTACT_INFO.phone}`} style={{ fontSize: "18px", color: "#333", textDecoration: "none" }}>
+              <a href={`tel:${CONTACT_INFO.phone}`} style={{ fontSize: "18px", color: "#333", textDecoration: "none", fontWeight: "bold" }}>
                 {CONTACT_INFO.phoneFormatted}
               </a>
             </div>
 
             <div style={{ marginBottom: "30px" }}>
-              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>✉️ Email</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>💬 WhatsApp Chat</h4>
+              <a href="https://wa.me/message/2EY6AGCVL5WRG1" target="_blank" rel="noopener noreferrer" style={{ 
+                display: "inline-block",
+                padding: "12px 24px", 
+                backgroundColor: "#25d366", 
+                color: "white", 
+                textDecoration: "none",
+                borderRadius: "5px",
+                fontWeight: "bold",
+                fontSize: "16px"
+              }}>
+                💬 Click to Chat on WhatsApp
+              </a>
+            </div>
+
+            <div style={{ marginBottom: "30px" }}>
+              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>📧 Email</h4>
               <a href={`mailto:${CONTACT_INFO.email}`} style={{ fontSize: "18px", color: "#333", textDecoration: "none" }}>
                 {CONTACT_INFO.email}
               </a>
             </div>
 
             <div style={{ marginBottom: "30px" }}>
-              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>💬 WhatsApp</h4>
-              <a href={`https://wa.me/${CONTACT_INFO.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "18px", color: "#333", textDecoration: "none" }}>
-                Chat with us on WhatsApp
-              </a>
+              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>📱 WhatsApp Number</h4>
+              <p style={{ fontSize: "18px", margin: "0" }}>
+                <a href={`https://wa.me/${CONTACT_INFO.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{ color: "#333", textDecoration: "none" }}>
+                  {CONTACT_INFO.phoneFormatted}
+                </a>
+              </p>
             </div>
 
             <div style={{ marginBottom: "30px" }}>
-              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>🌐 Follow Us</h4>
-              <p style={{ margin: "10px 0" }}>
-                <a href={CONTACT_INFO.facebook} target="_blank" rel="noopener noreferrer" style={{ color: "#007bff", textDecoration: "none", marginRight: "20px" }}>
-                  Facebook
+              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>👥 Follow Us</h4>
+              <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
+                <a href={CONTACT_INFO.facebook} target="_blank" rel="noopener noreferrer" style={{ 
+                  padding: "10px 20px",
+                  backgroundColor: "#1877f2",
+                  color: "white",
+                  textDecoration: "none",
+                  borderRadius: "5px",
+                  fontWeight: "bold"
+                }}>
+                  📘 Facebook Page
                 </a>
-                <a href={CONTACT_INFO.instagram} target="_blank" rel="noopener noreferrer" style={{ color: "#007bff", textDecoration: "none" }}>
-                  Instagram
+                <a href={CONTACT_INFO.instagram} target="_blank" rel="noopener noreferrer" style={{ 
+                  padding: "10px 20px",
+                  backgroundColor: "#e4405f",
+                  color: "white",
+                  textDecoration: "none",
+                  borderRadius: "5px",
+                  fontWeight: "bold"
+                }}>
+                  📷 Instagram
                 </a>
-              </p>
+              </div>
             </div>
 
             <div style={{ backgroundColor: "#f0f0f0", padding: "20px", borderRadius: "8px", marginTop: "30px" }}>

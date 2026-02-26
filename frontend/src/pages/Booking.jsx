@@ -43,10 +43,20 @@ export default function Booking() {
     }
 
     try {
+      // Prepare data with correct field names for backend
+      const bookingData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        tour_id: formData.tourId,  // Convert tourId to tour_id for backend
+        date: formData.date,
+        message: formData.message
+      };
+
       const response = await fetch("http://localhost:5000/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(bookingData)
       });
 
       if (response.ok) {
@@ -322,7 +332,7 @@ export default function Booking() {
                 </p>
               </div>
               <div>
-                <p style={{ margin: "0", color: "#666", fontSize: "14px" }}>Price per Person</p>
+                <p style={{ margin: "0", color: "#666", fontSize: "14px" }}>Price</p>
                 <p style={{ margin: "5px 0 0 0", fontSize: "24px", fontWeight: "bold", color: "#007bff" }}>
                   ${currentTour.price}
                 </p>

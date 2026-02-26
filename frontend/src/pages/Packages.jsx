@@ -57,7 +57,6 @@ export default function Packages() {
                   <p style={{ margin: "10px 0 5px 0", fontSize: "32px", color: "#007bff", fontWeight: "bold" }}>
                     ${tour.price}
                   </p>
-                  <p style={{ margin: "5px 0", fontSize: "14px", color: "#999" }}>per person</p>
                 </div>
 
                 {/* Description */}

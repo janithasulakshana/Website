@@ -65,7 +65,7 @@ export default function App() {
                   <Link to="/terms" style={{ display: "block", color: "white", textDecoration: "none", padding: "12px 20px", borderBottom: "1px solid #444" }} onClick={() => setShowMoreMenu(false)}>
                     📋 Terms & Conditions
                   </Link>
-            <li><Link to="/blog" style={{ display: "block", color: "white", textDecoration: "none", padding: "12px 20px" }} onClick={() => setShowMoreMenu(false)}>
+                  <Link to="/blog" style={{ display: "block", color: "white", textDecoration: "none", padding: "12px 20px" }} onClick={() => setShowMoreMenu(false)}>
                     📝 Blog
                   </Link>
                 </div>

@@ -10,7 +10,47 @@ export default function Home() {
         <h1 style={{ color: "#000", margin: "0 0 15px 0" }}>✅ React is Working!</h1>
         <p style={{ margin: "10px 0", fontSize: "18px" }}><strong>{COMPANY_INFO.name}</strong></p>
         <p style={{ margin: "10px 0", fontSize: "16px" }}>{COMPANY_INFO.tagline}</p>
-        <p style={{ margin: "10px 0", fontSize: "16px" }}>📞 {CONTACT_INFO.phone}</p>
+        
+        {/* Contact Info Section */}
+        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", alignItems: "center", marginTop: "15px", paddingTop: "15px", borderTop: "2px solid #ddd" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span>📞</span>
+            <a href={`tel:${CONTACT_INFO.phone}`} style={{ textDecoration: "none", color: "#333", fontWeight: "bold" }}>
+              {CONTACT_INFO.phoneFormatted}
+            </a>
+          </div>
+          
+          <a href="https://wa.me/message/2EY6AGCVL5WRG1" target="_blank" rel="noopener noreferrer" style={{ 
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 16px",
+            backgroundColor: "#25d366",
+            color: "white",
+            textDecoration: "none",
+            borderRadius: "5px",
+            fontWeight: "bold",
+            fontSize: "14px"
+          }}>
+            💬 WhatsApp Chat
+          </a>
+          
+          <a href={CONTACT_INFO.facebook} target="_blank" rel="noopener noreferrer" style={{ 
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 16px",
+            backgroundColor: "#1877f2",
+            color: "white",
+            textDecoration: "none",
+            borderRadius: "5px",
+            fontWeight: "bold",
+            fontSize: "14px"
+          }}>
+            📘 Facebook Page
+          </a>
+        </div>
+        
         <Link to="/tours" style={{ display: "inline-block", marginTop: "15px", padding: "10px 20px", backgroundColor: "#007bff", color: "white", textDecoration: "none", borderRadius: "5px" }}>Browse Tours</Link>
       </div>
       {/* Hero Section */}
