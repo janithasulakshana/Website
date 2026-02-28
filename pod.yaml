@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: website-pod
+  labels:
+    app: website
+spec:
+  containers:
+  - name: backend
+    image: website-backend:latest
+    ports:
+    - containerPort: 5000
+      name: api
+    env:
+    - name: NODE_ENV
+      value: "production"
+    - name: JWT_SECRET
+      value: "your-secret-key-change-in-production"
+    - name: DATABASE_PATH
+      value: "/data/bookings.db"
+    - name: PORT
+      value: "5000"
+    - name: HOST
+      value: "0.0.0.0"
+    - name: CORS_ORIGIN
+      value: "http://localhost:5173"
+    volumeMounts:
+    - name: data
+      mountPath: /data
+
+  - name: frontend
+    image: website-frontend:latest
+    ports:
+    - containerPort: 5173
+      name: web
+    env:
+    - name: VITE_API_BASE_URL
+      value: "http://localhost:5000"
+
+  volumes:
+  - name: data
+    emptyDir: {}
