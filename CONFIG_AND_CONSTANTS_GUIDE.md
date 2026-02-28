@@ -34,7 +34,7 @@ Company branding and details:
 ```javascript
 import { COMPANY_INFO } from "../config/constants";
 
-const name = COMPANY_INFO.name;              // "Trail Colombo by Janiya"
+const name = COMPANY_INFO.name;              // "Lets Go Colombo Tours by J"
 const tagline = COMPANY_INFO.tagline;        // "Explore Colombo Like Never Before"
 const yearsInBusiness = COMPANY_INFO.yearsInBusiness; // "10+"
 ```

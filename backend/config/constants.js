@@ -14,7 +14,7 @@ module.exports = {
 
   // Company Information
   COMPANY_INFO: {
-    name: "Trail Colombo by Janiya",
+    name: "Lets Go Colombo Tours by J",
     tagline: "Explore Colombo Like Never Before",
     yearsInBusiness: "10+",
     maxGroupSize: 3

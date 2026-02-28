@@ -125,7 +125,7 @@ export default function AdminDashboard() {
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <h1 style={{ margin: "0", fontSize: "24px" }}>👨‍💼 Admin Dashboard</h1>
-            <p style={{ margin: "5px 0 0 0", fontSize: "14px", opacity: 0.8 }}>Trail Colombo by Janiya</p>
+            <p style={{ margin: "5px 0 0 0", fontSize: "14px", opacity: 0.8 }}>Lets Go Colombo Tours by J</p>
           </div>
           <div style={{ textAlign: "right" }}>
             <p style={{ margin: "0 0 10px 0", fontSize: "14px" }}>Logged in as: <strong>{adminEmail}</strong></p>

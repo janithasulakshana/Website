@@ -337,7 +337,7 @@ This project is open source and available for educational and commercial use.
 
 ## 🙏 Credits
 
-**Trail Colombo by Janiya** - A premium city tour booking platform for Colombo
+**Lets Go Colombo Tours by J** - A premium city tour booking platform for Colombo
 
 ---
 

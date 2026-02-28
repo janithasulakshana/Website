@@ -214,7 +214,7 @@ This project is open source and available for educational and commercial use.
 
 ## 👤 Author
 
-Trail Colombo by Janiya
+Lets Go Colombo Tours by J
 
 ---
 

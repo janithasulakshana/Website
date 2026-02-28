@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
           <section style={{ marginBottom: "30px" }}>
             <h2 style={{ color: "#007bff", fontSize: "24px", marginBottom: "15px" }}>1. Introduction</h2>
             <p>
-              Trail Colombo by Janiya ("we," "us," "our," or "Company") operates the website. This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our service and the choices you have associated with that data.
+              Lets Go Colombo Tours by J ("we," "us," "our," or "Company") operates the website. This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our service and the choices you have associated with that data.
             </p>
           </section>
 
@@ -31,7 +31,7 @@ export default function PrivacyPolicy() {
 
           <section style={{ marginBottom: "30px" }}>
             <h2 style={{ color: "#007bff", fontSize: "24px", marginBottom: "15px" }}>3. Use of Data</h2>
-            <p>Trail Colombo by Janiya uses the collected data for various purposes:</p>
+            <p>Lets Go Colombo Tours by J uses the collected data for various purposes:</p>
             <ul style={{ paddingLeft: "25px" }}>
               <li style={{ marginBottom: "10px" }}>To provide and maintain our service</li>
               <li style={{ marginBottom: "10px" }}>To notify you about changes to our service</li>
@@ -72,7 +72,7 @@ export default function PrivacyPolicy() {
           marginTop: "50px",
           textAlign: "center"
         }}>
-          <p style={{ margin: "0" }}>Your privacy is important to us. Thank you for choosing Trail Colombo by Janiya.</p>
+          <p style={{ margin: "0" }}>Your privacy is important to us. Thank you for choosing Lets Go Colombo Tours by J.</p>
         </div>
       </div>
     </div>

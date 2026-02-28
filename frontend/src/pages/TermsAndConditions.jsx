@@ -21,13 +21,13 @@ export default function TermsAndConditions() {
 
           <section style={{ marginBottom: "30px" }}>
             <h2 style={{ color: "#007bff", fontSize: "24px", marginBottom: "15px" }}>2. Use License</h2>
-            <p>Permission is granted to temporarily download one copy of the materials (information or software) on Trail Colombo by Janiya's website for personal, non-commercial transitory viewing only.</p>
+            <p>Permission is granted to temporarily download one copy of the materials (information or software) on Lets Go Colombo Tours by J's website for personal, non-commercial transitory viewing only.</p>
           </section>
 
           <section style={{ marginBottom: "30px" }}>
             <h2 style={{ color: "#007bff", fontSize: "24px", marginBottom: "15px" }}>3. Disclaimer</h2>
             <p>
-              The materials on Trail Colombo by Janiya's website are provided "as is". Trail Colombo makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
+              The materials on Lets Go Colombo Tours by J's website are provided "as is". Lets Go Colombo Tours by J makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
             </p>
           </section>
 

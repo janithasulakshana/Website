@@ -23,7 +23,7 @@ export default function App() {
       <nav style={{ backgroundColor: "#333", padding: "12px 0", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Link to="/" style={{ color: "white", textDecoration: "none", fontSize: "20px", fontWeight: "bold" }}>
-            Trail Colombo by Janiya
+            Lets Go Colombo Tours by J
           </Link>
           <ul style={{ display: "flex", listStyle: "none", margin: "0", padding: "0", gap: "20px", alignItems: "center" }}>
             <li><Link to="/" style={{ color: "white", textDecoration: "none", padding: "8px 12px" }}>Home</Link></li>
