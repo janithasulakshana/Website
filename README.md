@@ -1,6 +1,6 @@
-# 🌍 Trail Colombo - City Tour Booking Platform
+# 🌍 Lets Go Colombo Tours by J - City Tour Booking Platform
 
-Welcome to Trail Colombo! This is a complete city tour booking platform for Colombo built with React, Express, and SQLite.
+Welcome to Lets Go Colombo Tours by J! This is a complete city tour booking platform for Colombo built with React, Express, and SQLite.
 
 ## 📚 Quick Navigation
 
@@ -343,7 +343,7 @@ This project is open source and available for educational and commercial use.
 
 ## ✅ Ready to Launch! 🚀
 
-Your Trail Colombo booking platform is complete and ready to use. Start with [QUICK_START.md](QUICK_START.md) to get running in minutes!
+Your Lets Go Colombo Tours by J booking platform is complete and ready to use. Start with [QUICK_START.md](QUICK_START.md) to get running in minutes!
 
 **Happy Booking! 🎉**
 

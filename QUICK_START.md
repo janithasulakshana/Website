@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide - Trail Colombo
+# 🚀 Quick Start Guide - Lets Go Colombo Tours by J
 
 ## 1️⃣ Install Dependencies
 

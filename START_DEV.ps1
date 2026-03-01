@@ -1,7 +1,7 @@
-# Trail Colombo Development Server Startup Script
+# Lets Go Colombo Tours by J Development Server Startup Script
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "Trail Colombo - Development Server Startup" -ForegroundColor Cyan
+Write-Host "Lets Go Colombo Tours by J - Development Server Startup" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 

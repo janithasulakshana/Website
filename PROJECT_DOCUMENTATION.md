@@ -1,4 +1,4 @@
-# Trail Colombo - Complete Project Documentation
+# Lets Go Colombo Tours by J - Complete Project Documentation
 
 ## 📋 Table of Contents
 1. [Project Overview](#project-overview)
@@ -15,7 +15,7 @@
 
 ## Project Overview
 
-**Trail Colombo** is a full-stack web application that allows users to browse and book city tours around Colombo. The platform features an admin dashboard for managing tours and bookings.
+**Lets Go Colombo Tours by J** is a full-stack web application that allows users to browse and book city tours around Colombo. The platform features an admin dashboard for managing tours and bookings.
 
 ### Key Features
 ✅ Browse tours with descriptions and pricing

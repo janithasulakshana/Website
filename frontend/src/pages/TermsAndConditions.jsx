@@ -34,28 +34,28 @@ export default function TermsAndConditions() {
           <section style={{ marginBottom: "30px" }}>
             <h2 style={{ color: "#007bff", fontSize: "24px", marginBottom: "15px" }}>4. Limitations</h2>
             <p>
-              In no event shall Trail Colombo or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on Trail Colombo's website.
+              In no event shall Lets Go Colombo Tours by J or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on Lets Go Colombo Tours by J's website.
             </p>
           </section>
 
           <section style={{ marginBottom: "30px" }}>
             <h2 style={{ color: "#007bff", fontSize: "24px", marginBottom: "15px" }}>5. Accuracy of Materials</h2>
             <p>
-              The materials appearing on Trail Colombo's website could include technical, typographical, or photographic errors. Trail Colombo does not warrant that any of the materials on its website are accurate, complete, or current. Trail Colombo may make changes to the materials contained on its website at any time without notice.
+              The materials appearing on Lets Go Colombo Tours by J's website could include technical, typographical, or photographic errors. Lets Go Colombo Tours by J does not warrant that any of the materials on its website are accurate, complete, or current. Lets Go Colombo Tours by J may make changes to the materials contained on its website at any time without notice.
             </p>
           </section>
 
           <section style={{ marginBottom: "30px" }}>
             <h2 style={{ color: "#007bff", fontSize: "24px", marginBottom: "15px" }}>6. Links</h2>
             <p>
-              Trail Colombo has not reviewed all of the sites linked to its website and is not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by Trail Colombo of the site. Use of any such linked website is at the user's own risk.
+              Lets Go Colombo Tours by J has not reviewed all of the sites linked to its website and is not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by Lets Go Colombo Tours by J of the site. Use of any such linked website is at the user's own risk.
             </p>
           </section>
 
           <section style={{ marginBottom: "30px" }}>
             <h2 style={{ color: "#007bff", fontSize: "24px", marginBottom: "15px" }}>7. Modifications</h2>
             <p>
-              Trail Colombo may revise these terms of service for its website at any time without notice. By using this website, you are agreeing to be bound by the then current version of these terms of service.
+              Lets Go Colombo Tours by J may revise these terms of service for its website at any time without notice. By using this website, you are agreeing to be bound by the then current version of these terms of service.
             </p>
           </section>
 
@@ -72,7 +72,7 @@ export default function TermsAndConditions() {
           <section style={{ marginBottom: "30px" }}>
             <h2 style={{ color: "#007bff", fontSize: "24px", marginBottom: "15px" }}>9. Guest Conduct</h2>
             <p>
-              Guests are expected to conduct themselves respectfully during tours. Trail Colombo reserves the right to refuse service to anyone who is disruptive, disrespectful, or poses a safety risk to other guests or staff.
+              Guests are expected to conduct themselves respectfully during tours. Lets Go Colombo Tours by J reserves the right to refuse service to anyone who is disruptive, disrespectful, or poses a safety risk to other guests or staff.
             </p>
           </section>
 
@@ -92,7 +92,7 @@ export default function TermsAndConditions() {
           marginTop: "50px",
           textAlign: "center"
         }}>
-          <p style={{ margin: "0" }}>By booking with Trail Colombo, you agree to these Terms and Conditions.</p>
+          <p style={{ margin: "0" }}>By booking with Lets Go Colombo Tours by J, you agree to these Terms and Conditions.</p>
         </div>
       </div>
     </div>

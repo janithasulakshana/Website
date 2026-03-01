@@ -1,4 +1,4 @@
-# Trail Colombo - Running on Localhost
+# Lets Go Colombo Tours by J - Running on Localhost
 
 ## Prerequisites
 - Node.js (v14 or higher)
