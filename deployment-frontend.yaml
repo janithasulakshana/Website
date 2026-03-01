@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website-frontend
+  namespace: default
+  labels:
+    app: website-frontend
+    version: v1
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: website-frontend
+  template:
+    metadata:
+      labels:
+        app: website-frontend
+      annotations:
+        argocd-image-updater.argoproj.io/image-list: website-frontend
+        argocd-image-updater.argoproj.io/website-frontend.image-spec: janithasulakshana/website-frontend
+        argocd-image-updater.argoproj.io/website-frontend.update-strategy: latest
+        argocd-image-updater.argoproj.io/website-frontend.pull-secret: regcred
+    spec:
+      containers:
+      - name: frontend
+        image: janithasulakshana/website-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+        env:
+        - name: VITE_API_BASE_URL
+          value: "http://website-backend:5000"
+        - name: VITE_PORT
+          value: "3000"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: website-frontend
+  namespace: default
+  labels:
+    app: website-frontend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: website-frontend
+

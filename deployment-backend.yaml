@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website-backend
+  namespace: default
+  labels:
+    app: website-backend
+    version: v1
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: website-backend
+  template:
+    metadata:
+      labels:
+        app: website-backend
+      annotations:
+        argocd-image-updater.argoproj.io/image-list: website-backend
+        argocd-image-updater.argoproj.io/website-backend.image-spec: janithasulakshana/website-backend
+        argocd-image-updater.argoproj.io/website-backend.update-strategy: latest
+        argocd-image-updater.argoproj.io/website-backend.pull-secret: regcred
+    spec:
+      containers:
+      - name: backend
+        image: janithasulakshana/website-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 5000
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "5000"
+        - name: DB_PATH
+          value: "/data/bookings.db"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: jwt-secret
+              optional: true
+        - name: CORS_ORIGIN
+          value: "http://localhost:5173"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/test
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/test
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        emptyDir: {}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: website-backend
+  namespace: default
+  labels:
+    app: website-backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: website-backend
+
