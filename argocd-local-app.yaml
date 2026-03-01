@@ -7,9 +7,15 @@ spec:
   project: default
   
   source:
+    # For now, using local manifests via kubectl apply
+    # Will sync from Git repo once manifests are organized
     repoURL: https://github.com/janithasulakshana/Website.git
     targetRevision: main
     path: .
+    directory:
+      recurse: true
+      include: '*.yaml'
+      exclude: '{argocd-*,docker-compose*,github-actions-*,kustomization-*}'
     
   destination:
     server: https://kubernetes.default.svc
