@@ -203,7 +203,7 @@ npm start
 
 ## 🎉 You're All Set!
 
-Your **Trail Colombo** development environment is ready!
+Your **Lets Go Colombo Tours by J** development environment is ready!
 
 **Next Steps:**
 1. Create admin account (see above)

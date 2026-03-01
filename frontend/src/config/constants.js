@@ -135,7 +135,7 @@ export const TESTIMONIALS = [
   {
     name: "Emma Wilson",
     location: "London",
-    text: "Highly recommend Trail Colombo! Informative, engaging, and truly immersive. Won't regret booking!",
+    text: "Highly recommend Lets Go Colombo Tours by J! Informative, engaging, and truly immersive. Won't regret booking!",
     rating: 5
   }
 ];

@@ -1,4 +1,4 @@
-# Trail Colombo API Testing Guide
+# Lets Go Colombo Tours by J API Testing Guide
 
 This file contains example requests to test all API endpoints.
 

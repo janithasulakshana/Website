@@ -1,7 +1,7 @@
 # Configuration & Constants Guide
 
 ## Overview
-This document explains how to use the centralized constants system in the Trail Colombo project. All hardcoded values for contact information, pricing, tour details, and other configurations are now managed in dedicated configuration files.
+This document explains how to use the centralized constants system in the Lets Go Colombo Tours by J project. All hardcoded values for contact information, pricing, tour details, and other configurations are now managed in dedicated configuration files.
 
 ## Frontend Configuration
 

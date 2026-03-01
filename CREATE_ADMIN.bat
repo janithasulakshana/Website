@@ -1,9 +1,9 @@
 @echo off
-REM Trail Colombo - Admin Account Registration Helper
+REM Lets Go Colombo Tours by J - Admin Account Registration Helper
 
 echo.
 echo ================================================
-echo Trail Colombo - Create Admin Account
+echo Lets Go Colombo Tours by J - Create Admin Account
 echo ================================================
 echo.
 echo This script will create your first admin account.

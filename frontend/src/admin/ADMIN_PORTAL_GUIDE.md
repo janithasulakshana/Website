@@ -1,7 +1,7 @@
 # 🔐 Admin Portal Documentation
 
 ## Overview
-The admin portal is a completely separate management interface for Trail Colombo administrators to manage bookings and tours. It's kept separate from the public-facing website for security and usability.
+The admin portal is a completely separate management interface for Lets Go Colombo Tours by J administrators to manage bookings and tours. It's kept separate from the public-facing website for security and usability.
 
 ---
 

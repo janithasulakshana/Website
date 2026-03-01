@@ -1,6 +1,6 @@
-# 📖 TRAIL COLOMBO - DOCUMENTATION INDEX
+# 📖 LETS GO COLOMBO TOURS BY J - DOCUMENTATION INDEX
 
-Welcome! This document helps you navigate all the documentation for your Trail Colombo project.
+Welcome! This document helps you navigate all the documentation for your Lets Go Colombo Tours by J project.
 
 ---
 
