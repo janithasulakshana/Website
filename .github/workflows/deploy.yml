@@ -25,6 +25,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Read version from VERSION file
+        id: version
+        run: |
+          VERSION=$(cat VERSION)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -46,6 +53,8 @@ jobs:
           push: true
           tags: |
             ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.BACKEND_IMAGE }}:${{ steps.version.outputs.version }}
+            ${{ env.BACKEND_IMAGE }}:${{ steps.version.outputs.version }}-${{ steps.vars.outputs.short_sha }}
             ${{ env.BACKEND_IMAGE }}:${{ steps.vars.outputs.short_sha }}
 
       - name: Build and push frontend image
@@ -56,4 +65,6 @@ jobs:
           push: true
           tags: |
             ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.FRONTEND_IMAGE }}:${{ steps.version.outputs.version }}
+            ${{ env.FRONTEND_IMAGE }}:${{ steps.version.outputs.version }}-${{ steps.vars.outputs.short_sha }}
             ${{ env.FRONTEND_IMAGE }}:${{ steps.vars.outputs.short_sha }}

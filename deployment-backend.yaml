@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: janithasulakshana/website-backend:latest
+        image: janithasulakshana/website-backend:1.0.0
         imagePullPolicy: Always
         ports:
         - name: http

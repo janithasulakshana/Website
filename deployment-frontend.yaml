@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: janithasulakshana/website-frontend:latest
+        image: janithasulakshana/website-frontend:1.0.0
         imagePullPolicy: Always
         ports:
         - name: http
