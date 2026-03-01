@@ -9,7 +9,7 @@ export const CONTACT_INFO = {
   email: "letsgocolombotoursbyj@gmail.com",
   whatsapp: "0703097737",
   facebook: "https://www.facebook.com/share/1FBPQpwss7/?mibextid=wwXIfr",
-  instagram: "https://www.instagram.com/trailcolombo"
+  instagram: "https://www.instagram.com/letsgocolombo"
 };
 
 export const COMPANY_INFO = {
@@ -171,9 +171,9 @@ export const COMMITMENT_POINTS = [
 
 export const SOCIAL_MEDIA = {
   facebook: "https://www.facebook.com/share/1FBPQpwss7/?mibextid=wwXIfr",
-  instagram: "https://www.instagram.com/trailcolombo",
+  instagram: "https://www.instagram.com/letsgocolombo",
   whatsapp: "https://wa.me/94703097737",
-  twitter: "https://twitter.com/trailcolombo"
+  twitter: "https://twitter.com/letsgocolombo"
 };
 
 // Service hours

@@ -17,7 +17,7 @@ import { CONTACT_INFO } from "../config/constants";
 
 // Usage
 const phone = CONTACT_INFO.phone;        // "0768465747"
-const email = CONTACT_INFO.email;        // "info@trailcolombo.com"
+const email = CONTACT_INFO.email;        // "letsgocolombotoursbyj@gmail.com"
 const whatsapp = CONTACT_INFO.whatsapp;  // "0768465747"
 ```
 
@@ -111,7 +111,7 @@ import { COMMITMENT_POINTS } from "../config/constants";
 const { CONTACT_INFO } = require("./config/constants");
 
 console.log(CONTACT_INFO.phone);     // "0768465747"
-console.log(CONTACT_INFO.email);     // "info@trailcolombo.com"
+console.log(CONTACT_INFO.email);     // "letsgocolombotoursbyj@gmail.com"
 ```
 
 #### 2. DATABASE
@@ -169,7 +169,7 @@ Admin configuration:
 const { ADMIN } = require("./config/constants");
 
 // Default credentials
-console.log(ADMIN.defaultEmail);  // "admin@trailcolombo.com"
+console.log(ADMIN.defaultEmail);  // "admin@letsgocolombotoursbyj.com"
 ```
 
 ## How to Update Values

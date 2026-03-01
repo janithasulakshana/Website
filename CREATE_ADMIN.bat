@@ -11,7 +11,7 @@ echo.
 
 setlocal enabledelayedexpansion
 
-set email=admin@trailcolombo.com
+set email=admin@letsgocolombotoursbyj.com
 set password=admin123
 
 echo Admin Email: %email%

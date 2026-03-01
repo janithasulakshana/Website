@@ -10,7 +10,7 @@ The admin portal is a completely separate management interface for Trail Colombo
 ### Admin Login
 - **URL**: `http://localhost:5174/admin-panel`
 - **Default Credentials**:
-  - Email: `admin@trailcolombo.com`
+  - Email: `admin@letsgocolombotoursbyj.com`
   - Password: `admin123`
   - ⚠️ **Important**: Change these credentials after first login!
 
@@ -89,7 +89,7 @@ Split into two main tabs:
 POST http://localhost:5000/api/admin/login
 Headers: Content-Type: application/json
 Body: {
-  "email": "admin@trailcolombo.com",
+  "email": "admin@letsgocolombotoursbyj.com",
   "password": "admin123"
 }
 Response: {

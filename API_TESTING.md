@@ -13,7 +13,7 @@ http://localhost:5000
 
 ```json
 {
-  "email": "admin@trailcolombo.com",
+  "email": "admin@letsgocolombotoursbyj.com",
   "password": "admin123"
 }
 ```
@@ -24,7 +24,7 @@ http://localhost:5000
 
 ```json
 {
-  "email": "admin@trailcolombo.com",
+  "email": "admin@letsgocolombotoursbyj.com",
   "password": "admin123"
 }
 ```
@@ -187,7 +187,7 @@ Authorization: Bearer {token}
 ### Get Token
 ```powershell
 $loginBody = @{
-    email = "admin@trailcolombo.com"
+    email = "admin@letsgocolombotoursbyj.com"
     password = "admin123"
 } | ConvertTo-Json
 

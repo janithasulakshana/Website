@@ -8,7 +8,7 @@ module.exports = {
   CONTACT_INFO: {
     phone: "0768465747",
     phoneFormatted: "+94 76 846 5747",
-    email: "info@trailcolombo.com",
+    email: "letsgocolombotoursbyj@gmail.com",
     whatsapp: "0768465747"
   },
 
@@ -43,8 +43,8 @@ module.exports = {
   // Email Configuration (for nodemailer)
   EMAIL: {
     service: process.env.EMAIL_SERVICE || "gmail",
-    from: process.env.EMAIL_FROM || "noreply@trailcolombo.com",
-    supportEmail: "info@trailcolombo.com"
+    from: process.env.EMAIL_FROM || "noreply@letsgocolombotoursbyj.com",
+    supportEmail: "letsgocolombotoursbyj@gmail.com"
   },
 
   // Tour Pricing
@@ -89,7 +89,7 @@ module.exports = {
 
   // Admin Configuration
   ADMIN: {
-    defaultEmail: "admin@trailcolombo.com",
+    defaultEmail: "admin@letsgocolombotoursbyj.com",
     defaultPassword: "admin123",
     maxLoginAttempts: 5
   },

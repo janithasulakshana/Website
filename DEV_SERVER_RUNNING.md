@@ -39,7 +39,7 @@ Open **Postman** or **PowerShell**:
 
 ```powershell
 $body = @{
-    email = "admin@trailcolombo.com"
+    email = "admin@letsgocolombotoursbyj.com"
     password = "admin123"
 } | ConvertTo-Json
 
@@ -65,7 +65,7 @@ This adds 4 sample Colombo tours to the database.
 
 ### 4. Login to Admin Dashboard
 - URL: http://localhost:5173/admin
-- Email: admin@trailcolombo.com
+- Email: admin@letsgocolombotoursbyj.com
 - Password: admin123
 
 ---

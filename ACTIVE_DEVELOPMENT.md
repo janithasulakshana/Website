@@ -58,7 +58,7 @@
 
 Open PowerShell and run:
 ```powershell
-$body = @{email = "admin@trailcolombo.com"; password = "admin123"} | ConvertTo-Json
+$body = @{email = "admin@letsgocolombotoursbyj.com"; password = "admin123"} | ConvertTo-Json
 Invoke-RestMethod -Uri "http://localhost:5000/api/admin/register" -Method POST -ContentType "application/json" -Body $body
 ```
 
@@ -78,7 +78,7 @@ This adds 4 real Colombo tours to the database.
 **Time: 30 seconds**
 
 1. Go to: http://localhost:5173/admin
-2. Email: `admin@trailcolombo.com`
+2. Email: `admin@letsgocolombotoursbyj.com`
 3. Password: `admin123`
 4. Click Login
 
@@ -147,7 +147,7 @@ Expected: {"success": true} or error if email exists
 ### Test 3: Admin Login
 ```
 POST http://localhost:5000/api/admin/login
-Body: {"email":"admin@trailcolombo.com","password":"admin123"}
+Body: {"email":"admin@letsgocolombotoursbyj.com","password":"admin123"}
 Expected: {"success": true, "token": "..."}
 ```
 

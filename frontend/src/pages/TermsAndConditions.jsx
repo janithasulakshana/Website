@@ -79,7 +79,7 @@ export default function TermsAndConditions() {
           <section style={{ marginBottom: "30px" }}>
             <h2 style={{ color: "#007bff", fontSize: "24px", marginBottom: "15px" }}>10. Contact Us</h2>
             <p>
-              If you have any questions about these Terms and Conditions, please contact us at: info@trailcolombo.com or call +94 76 846 5747
+              If you have any questions about these Terms and Conditions, please contact us at: letsgocolombotoursbyj@gmail.com or call +94 76 846 5747
             </p>
           </section>
 
