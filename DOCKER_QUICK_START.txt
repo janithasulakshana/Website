@@ -1,0 +1,190 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║          LETS GO COLOMBO TOURS - DOCKER MONITORING STACK QUICK START           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+✅ WHAT'S INCLUDED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  🐳 Docker Containers:
+     ✓ Backend API (Node.js Express) - Port 5000
+     ✓ Frontend (React/Vite) - Port 5173
+     ✓ Prometheus (Metrics) - Port 9090
+     ✓ Grafana (Dashboard) - Port 3000
+
+  💾 Data Persistence:
+     ✓ SQLite Database
+     ✓ Prometheus Metrics History
+     ✓ Grafana Configuration
+
+  🌐 Network:
+     ✓ Internal Docker bridge network (app-network)
+     ✓ All services communicate by name
+
+🚀 QUICK START (WINDOWS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Start Docker Desktop (or ensure it's running)
+
+  2. Run ONE of these commands:
+     
+     Option A - Automatic Setup (Recommended):
+     PS> .\docker-stack-up.ps1
+     
+     Option B - Manual:
+     PS> docker-compose up -d
+     
+     Option C - With logs:
+     PS> docker-compose up
+
+  3. Wait 10-15 seconds for services to initialize
+
+  4. Access services:
+     • Frontend:   http://localhost:5173
+     • Backend:    http://localhost:5000
+     • Prometheus: http://localhost:9090
+     • Grafana:    http://localhost:3000 (admin/admin123)
+
+📊 ACCESSING GRAFANA DASHBOARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  URL:      http://localhost:3000
+  Username: admin
+  Password: admin123
+
+  Dashboard: "Lets Go Colombo Tours - Application Monitoring"
+  
+  Panels included:
+  ✓ Backend API Response Time
+  ✓ HTTP Request Rate
+  ✓ HTTP Status Codes
+  ✓ Active Bookings
+  ✓ Pending Bookings
+  ✓ Memory Usage
+  ✓ CPU Usage
+
+🔧 COMMON COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  # Start services in background
+  docker-compose up -d
+
+  # View all running containers
+  docker-compose ps
+
+  # View real-time logs (all services)
+  docker-compose logs -f
+
+  # View logs for specific service
+  docker-compose logs -f grafana
+  docker-compose logs -f prometheus
+  docker-compose logs -f backend
+
+  # Stop all services (data persists)
+  docker-compose down
+
+  # Stop and remove all data (WARNING: Deletes everything)
+  docker-compose down -v
+
+  # Restart specific service
+  docker-compose restart grafana
+  docker-compose restart prometheus
+
+  # Build images (after code changes)
+  docker-compose build --no-cache
+
+  # Rebuild and start
+  docker-compose up -d --build --force-recreate
+
+📈 VERIFYING IT'S WORKING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Check all containers are running:
+     PS> docker-compose ps
+     (Should show all 4 services with status "Up")
+
+  2. Test backend metrics endpoint:
+     PS> curl http://localhost:5000/metrics
+     (Should show Prometheus metrics)
+
+  3. Check Prometheus targets:
+     Visit http://localhost:9090/targets
+     (Should show backend target as "UP")
+
+  4. Open Grafana dashboard:
+     Visit http://localhost:3000
+     (Should show "Lets Go Colombo Tours - Application Monitoring" dashboard)
+
+🐛 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ❌ "Docker is not running"
+     → Start Docker Desktop from Windows Start Menu
+
+  ❌ "Port 5000 is already in use"
+     → Change port in docker-compose.yml:
+        ports: ["5001:5000"]  # Use 5001 instead
+
+  ❌ "Grafana shows 'No Data'"
+     → Wait 30 seconds (metrics need time to accumulate)
+     → Check Prometheus: http://localhost:9090/targets
+     → Restart Grafana: docker-compose restart grafana
+
+  ❌ "Can't connect to backend"
+     → Check logs: docker-compose logs backend
+     → Verify backend is healthy: docker-compose ps
+
+  ❌ Container exits immediately
+     → View logs: docker-compose logs <service-name>
+     → Common causes: Port already in use, permission issues
+
+📁 FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  docker-compose.yml                      Main configuration file
+  monitoring/
+    ├── prometheus-docker-config.yaml    Prometheus for Docker
+    ├── grafana-datasources.yaml         Grafana datasource config
+    ├── grafana-dashboards-config.yaml   Dashboard provisioning
+    └── grafana-dashboards.yaml          Dashboard JSON
+  backend/                               Backend source code
+  frontend/                              Frontend source code
+  Dockerfile                             Backend image definition
+  Dockerfile.frontend                    Frontend image definition
+
+🔐 SECURITY NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ⚠️  Default credentials are admin/admin123
+  ⚠️  Only for development/testing
+  
+  For production:
+  1. Change Grafana password: GF_SECURITY_ADMIN_PASSWORD in docker-compose.yml
+  2. Set JWT_SECRET in .env file
+  3. Use environment-specific configs
+  4. Enable HTTPS/TLS
+
+📝 ENVIRONMENT SETUP (OPTIONAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Create .env file in root directory:
+
+  JWT_SECRET=your-super-secret-key
+  CORS_ORIGIN=http://localhost:5173
+  VITE_API_BASE_URL=http://localhost:5000
+  DATABASE_PATH=/data/bookings.db
+
+  Then docker-compose will use these values.
+
+📚 MORE INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  See DOCKER_MONITORING_GUIDE.md for detailed documentation including:
+  • Full service descriptions
+  • Advanced configuration
+  • Performance tuning
+  • Backup & restore procedures
+  • Production deployment guide
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ Lets Go Colombo Tours by J - Monitoring Stack v1.0.0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

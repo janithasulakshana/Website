@@ -9,6 +9,7 @@ const jwt = require("jsonwebtoken");
 const validator = require("validator");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const { register, metricsMiddleware, updateBookingMetrics, databaseConnectionsActive } = require("./metrics");
 
 // Get environment variables
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -25,6 +26,9 @@ const app = express();
 // Security middleware
 app.use(helmet());
 app.use(bodyParser.json({ limit: "10mb" }));
+
+// Metrics middleware
+app.use(metricsMiddleware);
 
 // CORS with restricted origins
 const corsOptions = {
@@ -424,9 +428,39 @@ app.use((req, res) => {
     res.status(404).json({ success: false, error: "Endpoint not found" });
 });
 
+// Metrics endpoint
+app.get('/metrics', async (req, res) => {
+    try {
+        res.set('Content-Type', register.contentType);
+        const metrics = await register.metrics();
+        res.end(metrics);
+    } catch (err) {
+        res.status(500).end(err);
+    }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
+// Update booking metrics every 30 seconds
+setInterval(() => {
+    updateBookingMetrics(db);
+    databaseConnectionsActive.set(1); // SQLite has 1 connection
+}, 30000);
+
+// Initial metrics update
+updateBookingMetrics(db);
+
 // Start server
 const server = app.listen(PORT, HOST, () => {
     console.log(`✓ Backend running at http://${HOST}:${PORT}`);
+    console.log(`✓ Metrics available at http://${HOST}:${PORT}/metrics`);
     console.log(`✓ Environment: ${process.env.NODE_ENV || "development"}`);
     console.log(`✓ CORS origin: ${corsOptions.origin}`);
 });
