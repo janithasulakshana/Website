@@ -16,9 +16,9 @@ Contains all contact-related information:
 import { CONTACT_INFO } from "../config/constants";
 
 // Usage
-const phone = CONTACT_INFO.phone;        // "0768465747"
+const phone = CONTACT_INFO.phone;        // "0703097737"
 const email = CONTACT_INFO.email;        // "letsgocolombotoursbyj@gmail.com"
-const whatsapp = CONTACT_INFO.whatsapp;  // "0768465747"
+const whatsapp = CONTACT_INFO.whatsapp;  // "0703097737"
 ```
 
 **Properties:**
@@ -110,7 +110,7 @@ import { COMMITMENT_POINTS } from "../config/constants";
 ```javascript
 const { CONTACT_INFO } = require("./config/constants");
 
-console.log(CONTACT_INFO.phone);     // "0768465747"
+console.log(CONTACT_INFO.phone);     // "0703097737"
 console.log(CONTACT_INFO.email);     // "letsgocolombotoursbyj@gmail.com"
 ```
 
@@ -178,7 +178,7 @@ console.log(ADMIN.defaultEmail);  // "admin@letsgocolombotoursbyj.com"
 
 **Before (Hardcoded):**
 ```jsx
-<a href="tel:0768465747">0768465747</a>
+<a href="tel:0703097737">0703097737</a>
 ```
 
 **After (Using Constants):**

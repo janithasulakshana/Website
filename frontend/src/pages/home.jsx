@@ -7,7 +7,6 @@ export default function Home() {
     <div style={{ backgroundColor: "#ffffff", color: "#333333", minHeight: "100vh", padding: "20px 0" }}>
       {/* Test Section */}
       <div style={{ maxWidth: "1200px", margin: "0 auto", backgroundColor: "#f0f0f0", padding: "20px", borderRadius: "8px", marginBottom: "30px", border: "3px solid #333" }}>
-        <h1 style={{ color: "#000", margin: "0 0 15px 0" }}>✅ React is Working!</h1>
         <p style={{ margin: "10px 0", fontSize: "18px" }}><strong>{COMPANY_INFO.name}</strong></p>
         <p style={{ margin: "10px 0", fontSize: "16px" }}>{COMPANY_INFO.tagline}</p>
         

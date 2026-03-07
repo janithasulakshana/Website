@@ -6,10 +6,10 @@
 module.exports = {
   // Contact Information
   CONTACT_INFO: {
-    phone: "0768465747",
-    phoneFormatted: "+94 76 846 5747",
+    phone: "0703097737",
+    phoneFormatted: "+94 70 309 7737",
     email: "letsgocolombotoursbyj@gmail.com",
-    whatsapp: "0768465747"
+    whatsapp: "0703097737"
   },
 
   // Company Information
