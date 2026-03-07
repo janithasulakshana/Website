@@ -1,0 +1,149 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  registryProvider: dockerhub
+  dockerhubNamespace: janithasulakshana
+  backendRepositoryName: website-backend
+  frontendRepositoryName: website-frontend
+  acrName: ''
+  acrLoginServer: ''
+  backendWebAppName: website-backend-app
+  frontendWebAppName: website-frontend-app
+  resourceGroupName: website-rg
+  tag: $(Build.BuildId)
+
+stages:
+  - stage: Build
+    displayName: Build and Push Images
+    jobs:
+      - job: BuildAndPush
+        displayName: Build and push Docker images
+        steps:
+          - checkout: self
+
+          - script: |
+              if [ "$(registryProvider)" = "dockerhub" ]; then
+                BACKEND_IMAGE="$(dockerhubNamespace)/$(backendRepositoryName)"
+                FRONTEND_IMAGE="$(dockerhubNamespace)/$(frontendRepositoryName)"
+              else
+                BACKEND_IMAGE="$(acrLoginServer)/$(backendRepositoryName)"
+                FRONTEND_IMAGE="$(acrLoginServer)/$(frontendRepositoryName)"
+              fi
+
+              echo "Backend image base: $BACKEND_IMAGE"
+              echo "Frontend image base: $FRONTEND_IMAGE"
+              echo "##vso[task.setvariable variable=backendImage]$BACKEND_IMAGE"
+              echo "##vso[task.setvariable variable=frontendImage]$FRONTEND_IMAGE"
+            displayName: Resolve image names
+
+          - script: |
+              echo "$(DOCKERHUB_PASSWORD)" | docker login -u "$(DOCKERHUB_USERNAME)" --password-stdin
+            displayName: Docker Hub login
+            condition: eq(variables['registryProvider'], 'dockerhub')
+
+          - script: |
+              echo "$(ACR_PASSWORD)" | docker login "$(acrLoginServer)" -u "$(ACR_USERNAME)" --password-stdin
+            displayName: ACR login
+            condition: eq(variables['registryProvider'], 'acr')
+
+          - script: |
+              docker build -f Dockerfile -t $(backendImage):$(tag) -t $(backendImage):latest .
+              docker push $(backendImage):$(tag)
+              docker push $(backendImage):latest
+            displayName: Build and push backend image
+
+          - script: |
+              docker build -f Dockerfile.frontend.prod --build-arg VITE_API_BASE_URL=$(FRONTEND_API_BASE_URL) -t $(frontendImage):$(tag) -t $(frontendImage):latest .
+              docker push $(frontendImage):$(tag)
+              docker push $(frontendImage):latest
+            displayName: Build and push frontend image
+
+  - stage: Deploy
+    displayName: Deploy to Azure Web App
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployContainers
+        displayName: Deploy backend and frontend containers
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: |
+                    if [ "$(registryProvider)" = "dockerhub" ]; then
+                      BACKEND_IMAGE="$(dockerhubNamespace)/$(backendRepositoryName)"
+                      FRONTEND_IMAGE="$(dockerhubNamespace)/$(frontendRepositoryName)"
+                    else
+                      BACKEND_IMAGE="$(acrLoginServer)/$(backendRepositoryName)"
+                      FRONTEND_IMAGE="$(acrLoginServer)/$(frontendRepositoryName)"
+                    fi
+
+                    echo "##vso[task.setvariable variable=backendImage]$BACKEND_IMAGE"
+                    echo "##vso[task.setvariable variable=frontendImage]$FRONTEND_IMAGE"
+                  displayName: Resolve deploy image names
+
+                - script: |
+                    az login --service-principal -u "$(AZURE_CLIENT_ID)" -p "$(AZURE_CLIENT_SECRET)" --tenant "$(AZURE_TENANT_ID)"
+                    az account set --subscription "$(AZURE_SUBSCRIPTION_ID)"
+
+                    if [ "$(registryProvider)" = "dockerhub" ]; then
+                      REGISTRY_URL="https://index.docker.io"
+                      REGISTRY_USERNAME="$(DOCKERHUB_USERNAME)"
+                      REGISTRY_PASSWORD="$(DOCKERHUB_PASSWORD)"
+                    else
+                      REGISTRY_URL="https://$(acrLoginServer)"
+                      REGISTRY_USERNAME="$(ACR_USERNAME)"
+                      REGISTRY_PASSWORD="$(ACR_PASSWORD)"
+                    fi
+
+                    az webapp config container set \
+                      --resource-group "$(resourceGroupName)" \
+                      --name "$(backendWebAppName)" \
+                      --container-image-name "$(backendImage):$(tag)" \
+                      --container-registry-url "$REGISTRY_URL" \
+                      --container-registry-user "$REGISTRY_USERNAME" \
+                      --container-registry-password "$REGISTRY_PASSWORD"
+
+                    az webapp config appsettings set \
+                      --resource-group "$(resourceGroupName)" \
+                      --name "$(backendWebAppName)" \
+                      --settings \
+                        WEBSITES_PORT=5000 \
+                        PORT=5000 \
+                        HOST=0.0.0.0 \
+                        DATABASE_PATH=/home/site/data/bookings.db \
+                        CORS_ORIGIN=$(CORS_ORIGIN) \
+                        JWT_SECRET=$(JWT_SECRET) \
+                        DOCKER_REGISTRY_SERVER_URL=$REGISTRY_URL \
+                        DOCKER_REGISTRY_SERVER_USERNAME=$REGISTRY_USERNAME \
+                        DOCKER_REGISTRY_SERVER_PASSWORD=$REGISTRY_PASSWORD
+
+                    az webapp config container set \
+                      --resource-group "$(resourceGroupName)" \
+                      --name "$(frontendWebAppName)" \
+                      --container-image-name "$(frontendImage):$(tag)" \
+                      --container-registry-url "$REGISTRY_URL" \
+                      --container-registry-user "$REGISTRY_USERNAME" \
+                      --container-registry-password "$REGISTRY_PASSWORD"
+
+                    az webapp config appsettings set \
+                      --resource-group "$(resourceGroupName)" \
+                      --name "$(frontendWebAppName)" \
+                      --settings \
+                        WEBSITES_PORT=80 \
+                        DOCKER_REGISTRY_SERVER_URL=$REGISTRY_URL \
+                        DOCKER_REGISTRY_SERVER_USERNAME=$REGISTRY_USERNAME \
+                        DOCKER_REGISTRY_SERVER_PASSWORD=$REGISTRY_PASSWORD
+                  displayName: Deploy and configure Azure Web Apps
