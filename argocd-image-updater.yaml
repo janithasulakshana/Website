@@ -41,10 +41,12 @@ rules:
     resources:
       - secrets
       - configmaps
+      - events
     verbs:
       - get
       - list
       - watch
+      - create
   # Leader election lease permissions
   - apiGroups:
       - coordination.k8s.io

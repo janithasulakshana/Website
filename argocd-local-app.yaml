@@ -7,10 +7,10 @@ metadata:
     # ArgoCD Image Updater annotations
     argocd-image-updater.argoproj.io/image-list: website-backend=janithasulakshana/website-backend:latest,website-frontend=janithasulakshana/website-frontend:latest
     argocd-image-updater.argoproj.io/write-back-method: argocd
-    argocd-image-updater.argoproj.io/website-backend.update-strategy: digest
+    argocd-image-updater.argoproj.io/website-backend.update-strategy: newest-build
     argocd-image-updater.argoproj.io/website-backend.allow-tags: regexp:^latest$
     argocd-image-updater.argoproj.io/website-backend.force-update: "true"
-    argocd-image-updater.argoproj.io/website-frontend.update-strategy: digest
+    argocd-image-updater.argoproj.io/website-frontend.update-strategy: newest-build
     argocd-image-updater.argoproj.io/website-frontend.allow-tags: regexp:^latest$
     argocd-image-updater.argoproj.io/website-frontend.force-update: "true"
 spec:
