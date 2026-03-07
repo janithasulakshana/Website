@@ -24,6 +24,21 @@ Welcome! This document helps you navigate all the documentation for your Lets Go
 
 ## 📚 DOCUMENTATION LEVELS
 
+### Argo CD & GitOps Deployment 🚀
+Perfect for Argo CD installation, image automation, and operations
+
+1. **[ARGOCD_DEPLOYMENT_COMPREHENSIVE_GUIDE.md](ARGOCD_DEPLOYMENT_COMPREHENSIVE_GUIDE.md)**
+   - End-to-end Argo CD deployment
+   - Image Updater configuration
+   - Validation and troubleshooting
+   - Production recommendations
+
+2. **[ARGOCD_RELEASE_CHECKLIST.md](ARGOCD_RELEASE_CHECKLIST.md)**
+   - One-page pre-flight checklist
+   - Release execution steps
+   - Post-release verification
+   - Rollback checks
+
 ### Level 1: Overview & Quick Start ⭐
 Perfect if you just want to run the project
 
@@ -209,6 +224,12 @@ Perfect for understanding the complete picture
 
 **Deployment**
 → [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) → Deployment section
+
+**Argo CD Deployment / GitOps**
+→ [ARGOCD_DEPLOYMENT_COMPREHENSIVE_GUIDE.md](ARGOCD_DEPLOYMENT_COMPREHENSIVE_GUIDE.md)
+
+**Argo CD Release Checklist**
+→ [ARGOCD_RELEASE_CHECKLIST.md](ARGOCD_RELEASE_CHECKLIST.md)
 
 **What Was Changed**
 → [ENHANCEMENTS_SUMMARY.md](ENHANCEMENTS_SUMMARY.md)

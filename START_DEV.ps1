@@ -5,6 +5,10 @@ Write-Host "Lets Go Colombo Tours by J - Development Server Startup" -Foreground
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
+$projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$backendPath = Join-Path $projectRoot "backend"
+$frontendPath = Join-Path $projectRoot "frontend"
+
 # Check if backend is running
 $backendRunning = Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq 'node' }
 
@@ -13,7 +17,7 @@ if ($backendRunning) {
 } else {
     Write-Host "✗ Backend Server is NOT running" -ForegroundColor Red
     Write-Host "Starting Backend Server..." -ForegroundColor Yellow
-    Push-Location "c:\Users\Aruthsha Kasandun\Desktop\Website\backend"
+    Push-Location $backendPath
     npm start
     Pop-Location
 }
@@ -24,5 +28,5 @@ Write-Host "This will open at http://localhost:5173" -ForegroundColor Cyan
 Write-Host ""
 
 # Start frontend
-cd "c:\Users\Aruthsha Kasandun\Desktop\Website\frontend"
+cd $frontendPath
 npm run dev
