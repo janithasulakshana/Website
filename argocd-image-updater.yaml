@@ -33,6 +33,8 @@ rules:
       - get
       - list
       - watch
+      - update
+      - patch
   # Read secrets and configmaps for credentials
   - apiGroups:
       - ""
@@ -43,6 +45,18 @@ rules:
       - get
       - list
       - watch
+  # Leader election lease permissions
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
 
 ---
 # ClusterRoleBinding
@@ -73,16 +87,6 @@ data:
   # Log level: trace, debug, info, warn, error
   log.level: info
   
-  # Git configuration
-  git.user: "argocd-image-updater"
-  git.email: "argocd-image-updater@letsgo.local"
-  git.commit-message-template: |
-    auto: update {{.AppName}} image
-    
-    {{range .Images}}
-    - {{.ImageName}}: {{.OldTag}} → {{.NewTag}}
-    {{end}}
-  
   # ArgoCD Server configuration
   argocd.server.insecure: "false"
   argocd.grpc.web: "true"
@@ -94,26 +98,8 @@ data:
     - name: Docker Hub
       prefix: docker.io
       api_url: https://registry-1.docker.io
-      credentials: secret:dockerhub#credentials
+      credentials: secret:argocd/dockerhub-credentials#credentials
       default: true
-    - name: Private Registry
-      prefix: your-registry
-      api_url: https://your-registry
-      credentials: secret:private-registry#credentials
-
----
-# Secret for GitHub/GitLab Token (for pushing commits)
-apiVersion: v1
-kind: Secret
-metadata:
-  name: git-credentials
-  namespace: argocd
-  labels:
-    app.kubernetes.io/name: argocd-image-updater
-type: Opaque
-stringData:
-  # GitHub Personal Access Token (with repo and read:packages scopes)
-  git.token: "ghp_YOUR_GITHUB_TOKEN_HERE"
 
 ---
 # Secret for Docker Hub credentials (if images are private)
@@ -124,20 +110,8 @@ metadata:
   namespace: argocd
 type: Opaque
 stringData:
-  username: "your-dockerhub-username"
-  password: "your-dockerhub-password"
-
----
-# Secret for Private Registry credentials
-apiVersion: v1
-kind: Secret
-metadata:
-  name: private-registry-credentials
-  namespace: argocd
-type: Opaque
-stringData:
-  username: "your-registry-username"
-  password: "your-registry-password"
+  # Format must be: <username>:<password_or_token>
+  credentials: "your-dockerhub-username:your-dockerhub-password"
 
 ---
 # Deployment for ArgoCD Image Updater
@@ -164,10 +138,9 @@ spec:
       automountServiceAccountToken: true
       containers:
       - name: argocd-image-updater
-        image: argoproj/argocd-image-updater:v0.12.2
+        image: quay.io/argoprojlabs/argocd-image-updater:v0.15.0
         imagePullPolicy: Always
         args:
-          - /usr/local/bin/argocd-image-updater
           - run
         
         env:
@@ -176,13 +149,6 @@ spec:
           value: "true"
         - name: ARGOCD_SERVER
           value: "argocd-server.argocd:443"
-        
-        # Git credentials
-        - name: GIT_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: git-credentials
-              key: git.token
         
         # Logging
         - name: IMAGE_UPDATER_LOG_LEVEL

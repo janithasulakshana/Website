@@ -5,13 +5,14 @@ metadata:
   namespace: argocd
   annotations:
     # ArgoCD Image Updater annotations
-    argocd-image-updater.argoproj.io/image-list: website-backend,website-frontend
-    argocd-image-updater.argoproj.io/website-backend.image-spec: janithasulakshana/website-backend
-    argocd-image-updater.argoproj.io/website-backend.update-strategy: semver:~1.0
-    argocd-image-updater.argoproj.io/website-backend.allow-tags: regexp:^[0-9]+\.[0-9]+\.[0-9]+(-[a-f0-9]{7})?$
-    argocd-image-updater.argoproj.io/website-frontend.image-spec: janithasulakshana/website-frontend
-    argocd-image-updater.argoproj.io/website-frontend.update-strategy: semver:~1.0
-    argocd-image-updater.argoproj.io/website-frontend.allow-tags: regexp:^[0-9]+\.[0-9]+\.[0-9]+(-[a-f0-9]{7})?$
+    argocd-image-updater.argoproj.io/image-list: website-backend=janithasulakshana/website-backend,website-frontend=janithasulakshana/website-frontend
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+    argocd-image-updater.argoproj.io/website-backend.update-strategy: digest
+    argocd-image-updater.argoproj.io/website-backend.allow-tags: regexp:^latest$
+    argocd-image-updater.argoproj.io/website-backend.force-update: "true"
+    argocd-image-updater.argoproj.io/website-frontend.update-strategy: digest
+    argocd-image-updater.argoproj.io/website-frontend.allow-tags: regexp:^latest$
+    argocd-image-updater.argoproj.io/website-frontend.force-update: "true"
 spec:
   project: default
   
@@ -19,10 +20,6 @@ spec:
     repoURL: https://github.com/janithasulakshana/Website.git
     targetRevision: main
     path: .
-    directory:
-      recurse: true
-      include: '{deployment-*.yaml,secret-app.yaml}'
-      exclude: '{argocd-*,docker-compose*,github-actions-*,kustomization-*,pod.yaml}'
     
   destination:
     server: https://kubernetes.default.svc
