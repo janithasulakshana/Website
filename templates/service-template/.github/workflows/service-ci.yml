@@ -1,0 +1,29 @@
+name: Service CI
+
+on:
+  push:
+    branches: ["main", "develop"]
+    paths:
+      - "services/__SERVICE_NAME__/**"
+      - "templates/service-template/**"
+      - ".github/workflows/reusable-service-ci.yml"
+  pull_request:
+    branches: ["main", "develop"]
+    paths:
+      - "services/__SERVICE_NAME__/**"
+      - "templates/service-template/**"
+      - ".github/workflows/reusable-service-ci.yml"
+
+jobs:
+  service-ci:
+    uses: ./.github/workflows/reusable-service-ci.yml
+    with:
+      service_name: __SERVICE_NAME__
+      service_directory: services/__SERVICE_NAME__
+      dockerfile: services/__SERVICE_NAME__/Dockerfile
+      image_repository: your-dockerhub-user/__SERVICE_NAME__
+      chart_path: services/__SERVICE_NAME__/chart
+      run_tests: true
+    secrets:
+      REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      REGISTRY_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

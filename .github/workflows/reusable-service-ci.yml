@@ -1,0 +1,120 @@
+name: Reusable Service CI
+
+on:
+  workflow_call:
+    inputs:
+      service_name:
+        description: Service name used for image tags and metadata
+        required: true
+        type: string
+      service_directory:
+        description: Relative path to service source folder
+        required: true
+        type: string
+      node_version:
+        description: Node.js version for build/test jobs
+        required: false
+        default: "24"
+        type: string
+      dockerfile:
+        description: Relative path to Dockerfile
+        required: true
+        type: string
+      image_repository:
+        description: Full image repository path (e.g. org/my-service)
+        required: true
+        type: string
+      run_tests:
+        description: Toggle service test stage
+        required: false
+        default: true
+        type: boolean
+      chart_path:
+        description: Relative path to Helm chart for linting
+        required: false
+        default: ""
+        type: string
+    secrets:
+      REGISTRY_USERNAME:
+        required: true
+      REGISTRY_TOKEN:
+        required: true
+
+jobs:
+  validate:
+    name: Validate and Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.service_directory }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ inputs.service_directory }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        if: ${{ inputs.run_tests }}
+        run: npm test --if-present
+
+      - name: Build application
+        run: npm run build --if-present
+
+  docker-build:
+    name: Build and Push Image
+    runs-on: ubuntu-latest
+    needs: validate
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker registry
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ inputs.dockerfile }}
+          push: true
+          tags: |
+            ${{ inputs.image_repository }}:latest
+            ${{ inputs.image_repository }}:${{ github.run_number }}
+            ${{ inputs.image_repository }}:${{ github.run_number }}-${{ steps.meta.outputs.short_sha }}
+
+  helm-lint:
+    name: Helm Lint
+    runs-on: ubuntu-latest
+    needs: validate
+    if: ${{ inputs.chart_path != '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint Helm chart
+        run: helm lint ${{ inputs.chart_path }}

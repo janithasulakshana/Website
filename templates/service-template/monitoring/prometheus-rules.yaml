@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: __SERVICE_NAME__-rules
+  namespace: monitoring
+spec:
+  groups:
+    - name: __SERVICE_NAME__.alerts
+      rules:
+        - alert: HighErrorRate
+          expr: sum(rate(http_requests_total{job="__SERVICE_NAME__",status=~"5.."}[5m])) / sum(rate(http_requests_total{job="__SERVICE_NAME__"}[5m])) > 0.05
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: High 5xx error rate for __SERVICE_NAME__
+        - alert: HighLatencyP95
+          expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="__SERVICE_NAME__"}[5m])) by (le)) > 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: P95 latency is above 1s for __SERVICE_NAME__

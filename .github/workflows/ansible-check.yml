@@ -1,0 +1,38 @@
+name: Ansible Check
+
+on:
+  pull_request:
+    branches: ["main", "develop"]
+    paths:
+      - "ansible/**"
+      - ".github/workflows/ansible-check.yml"
+  push:
+    branches: ["main", "develop"]
+    paths:
+      - "ansible/**"
+      - ".github/workflows/ansible-check.yml"
+
+jobs:
+  ansible-syntax:
+    name: Ansible Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Syntax check bootstrap playbook
+        run: ansible-playbook -i ansible/inventories/dev/hosts.yml ansible/playbooks/bootstrap-node.yml --syntax-check
+
+      - name: Syntax check backend env playbook
+        run: ansible-playbook -i ansible/inventories/dev/hosts.yml ansible/playbooks/configure-backend-env.yml --syntax-check
+
+      - name: Syntax check monitoring playbook
+        run: ansible-playbook -i ansible/inventories/dev/hosts.yml ansible/playbooks/configure-monitoring-agent.yml --syntax-check

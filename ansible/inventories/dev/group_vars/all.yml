@@ -1,0 +1,8 @@
+app_name: website-backend
+deploy_user: azureuser
+app_root: /opt/website
+backend_port: 5000
+cors_origin: http://localhost:5173
+jwt_secret: change-me-dev
+log_level: info
+log_format: json

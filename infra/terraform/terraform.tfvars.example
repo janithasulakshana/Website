@@ -1,0 +1,11 @@
+resource_group_name = "website-rg"
+location            = "East US 2"
+static_web_app_name = "website-frontend-swa"
+sku_tier            = "Free"
+sku_size            = "Free"
+
+tags = {
+  environment = "dev"
+  owner       = "platform-team"
+  project     = "website"
+}

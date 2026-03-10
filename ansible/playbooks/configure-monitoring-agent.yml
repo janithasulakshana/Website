@@ -1,0 +1,26 @@
+---
+- name: Configure basic monitoring/log shipping labels
+  hosts: app_hosts
+  become: true
+  tasks:
+    - name: Ensure log directory exists
+      ansible.builtin.file:
+        path: /var/log/website
+        state: directory
+        owner: root
+        group: adm
+        mode: "0755"
+
+    - name: Create environment metadata file for agents
+      ansible.builtin.copy:
+        dest: /etc/website-agent.env
+        mode: "0644"
+        content: |
+          APP_NAME={{ app_name }}
+          ENVIRONMENT={{ (inventory_file is search('prod')) | ternary('prod', 'dev') }}
+          LOG_FORMAT={{ log_format }}
+          LOG_LEVEL={{ log_level }}
+
+    - name: Confirm metadata file update
+      ansible.builtin.debug:
+        msg: "Updated /etc/website-agent.env for {{ inventory_hostname }}"

@@ -1,0 +1,24 @@
+---
+- name: Configure backend environment file
+  hosts: app_hosts
+  become: true
+  tasks:
+    - name: Ensure config directory exists
+      ansible.builtin.file:
+        path: "{{ app_root }}/config"
+        state: directory
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: "0750"
+
+    - name: Render backend environment file
+      ansible.builtin.template:
+        src: ../templates/backend.env.j2
+        dest: "{{ app_root }}/config/backend.env"
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: "0640"
+
+    - name: Show config deployment path
+      ansible.builtin.debug:
+        msg: "Backend env rendered to {{ app_root }}/config/backend.env"
