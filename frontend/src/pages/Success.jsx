@@ -7,7 +7,7 @@ export default function Success() {
       <div className="row justify-content-center">
         <div className="col-md-6 text-center">
           <div className="alert alert-success" role="alert">
-            <h2 className="alert-heading">✓ Booking Successful!</h2>
+            <h2 className="alert-heading">Booking Successful!</h2>
             <hr />
             <p>Thank you for booking with us!</p>
             <p className="mb-0">We will contact you soon to confirm your tour details.</p>

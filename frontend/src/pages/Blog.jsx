@@ -56,7 +56,7 @@ export default function Blog() {
     <div style={{ backgroundColor: "#ffffff", color: "#333333", minHeight: "100vh", padding: "40px 20px" }}>
       <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
         
-        <h1 style={{ textAlign: "center", fontSize: "48px", marginBottom: "10px" }}>Travel Blog</h1>
+        <h1 style={{ textAlign: "center", fontSize: "clamp(30px, 7vw, 48px)", marginBottom: "10px" }}>Travel Blog</h1>
         <p style={{ textAlign: "center", fontSize: "18px", color: "#666", marginBottom: "50px" }}>
           Stories, tips, and insights about Colombo travel
         </p>
@@ -92,12 +92,14 @@ export default function Blog() {
                 padding: "15px 20px", 
                 borderBottom: "1px solid #eee",
                 display: "flex",
+                flexWrap: "wrap",
+                rowGap: "6px",
                 justifyContent: "space-between",
                 fontSize: "13px",
                 color: "#666"
               }}>
-                <span>📅 {blog.date}</span>
-                <span>✍️ {blog.author}</span>
+                <span>Date: {blog.date}</span>
+                <span>Author: {blog.author}</span>
               </div>
 
               {/* Content */}
@@ -147,12 +149,12 @@ export default function Blog() {
         }}>
           <h2 style={{ marginTop: "0" }}>Subscribe to Our Blog</h2>
           <p style={{ marginBottom: "25px" }}>Get travel tips and Colombo stories delivered to your inbox</p>
-          <div style={{ display: "flex", gap: "10px", maxWidth: "500px", margin: "0 auto" }}>
+          <div style={{ display: "flex", gap: "10px", maxWidth: "500px", margin: "0 auto", flexWrap: "wrap" }}>
             <input 
               type="email" 
               placeholder="Enter your email"
               style={{
-                flex: 1,
+                flex: "1 1 220px",
                 padding: "12px 15px",
                 border: "none",
                 borderRadius: "5px",

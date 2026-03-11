@@ -2,22 +2,22 @@ import React from "react";
 
 export default function Gallery() {
   const galleryItems = [
-    { id: 1, title: "Colombo City View", category: "City", emoji: "🏙️" },
-    { id: 2, title: "Historic Landmarks", category: "Landmarks", emoji: "🏛️" },
-    { id: 3, title: "Beach Sunset", category: "Nature", emoji: "🌅" },
-    { id: 4, title: "Local Markets", category: "Culture", emoji: "🛍️" },
-    { id: 5, title: "Temple Visit", category: "Landmarks", emoji: "🏯" },
-    { id: 6, title: "Street Food Tour", category: "Food", emoji: "🍜" },
-    { id: 7, title: "Group Adventure", category: "Tours", emoji: "👥" },
-    { id: 8, title: "Night Scene", category: "City", emoji: "🌃" },
-    { id: 9, title: "Scenic Routes", category: "Nature", emoji: "🚗" },
+    { id: 1, title: "Colombo City View", category: "City" },
+    { id: 2, title: "Historic Landmarks", category: "Landmarks" },
+    { id: 3, title: "Beach Sunset", category: "Nature" },
+    { id: 4, title: "Local Markets", category: "Culture" },
+    { id: 5, title: "Temple Visit", category: "Landmarks" },
+    { id: 6, title: "Street Food Tour", category: "Food" },
+    { id: 7, title: "Group Adventure", category: "Tours" },
+    { id: 8, title: "Night Scene", category: "City" },
+    { id: 9, title: "Scenic Routes", category: "Nature" },
   ];
 
   return (
     <div style={{ backgroundColor: "#ffffff", color: "#333333", minHeight: "100vh", padding: "40px 20px" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         
-        <h1 style={{ textAlign: "center", fontSize: "48px", marginBottom: "10px" }}>Photo Gallery</h1>
+        <h1 style={{ textAlign: "center", fontSize: "clamp(30px, 7vw, 48px)", marginBottom: "10px" }}>Photo Gallery</h1>
         <p style={{ textAlign: "center", fontSize: "18px", color: "#666", marginBottom: "50px" }}>
           Explore the beauty of Colombo through our tours
         </p>
@@ -48,7 +48,6 @@ export default function Gallery() {
                 textAlign: "center",
                 padding: "20px"
               }}>
-                <div style={{ fontSize: "80px", marginBottom: "15px" }}>{item.emoji}</div>
                 <h4 style={{ margin: "0 0 8px 0", fontSize: "18px" }}>{item.title}</h4>
                 <span style={{ 
                   backgroundColor: "#007bff", 
@@ -75,7 +74,7 @@ export default function Gallery() {
           textAlign: "center"
         }}>
           <p style={{ margin: "0" }}>
-            📸 These are sample gallery images. Real photos from our tours will be displayed here. 
+            These are sample gallery images. Real photos from our tours will be displayed here. 
             For a full photo gallery, please visit our Instagram @trailcolombo
           </p>
         </div>

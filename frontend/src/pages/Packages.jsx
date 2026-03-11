@@ -8,7 +8,7 @@ export default function Packages() {
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         
         {/* Page Title */}
-        <h1 style={{ textAlign: "center", fontSize: "48px", marginBottom: "10px" }}>Tour Packages</h1>
+        <h1 style={{ textAlign: "center", fontSize: "clamp(30px, 7vw, 48px)", marginBottom: "10px" }}>Tour Packages</h1>
         <p style={{ textAlign: "center", fontSize: "18px", color: "#666", marginBottom: "50px" }}>
           Choose the perfect package for your Colombo adventure
         </p>
@@ -76,7 +76,7 @@ export default function Packages() {
                   <h5 style={{ margin: "0 0 12px 0", fontSize: "14px", fontWeight: "bold" }}>What's Included:</h5>
                   <ul style={{ margin: "0", paddingLeft: "20px", fontSize: "14px", lineHeight: "1.8" }}>
                     {tour.includes.map((item, idx) => (
-                      <li key={idx} style={{ marginBottom: "5px" }}>✓ {item}</li>
+                      <li key={idx} style={{ marginBottom: "5px" }}>{item}</li>
                     ))}
                   </ul>
                 </div>
@@ -134,32 +134,32 @@ export default function Packages() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "30px" }}>
             
             <div>
-              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>🚗 Transportation</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>Transportation</h4>
               <p>Air-conditioned vehicles with professional drivers. Small group tours (max 3 people) for personalized attention.</p>
             </div>
 
             <div>
-              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>👨‍🏫 Expert Guides</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>Expert Guides</h4>
               <p>Knowledgeable local guides who share insights into Colombo's culture, history, and hidden gems.</p>
             </div>
 
             <div>
-              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>📸 Photography</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>Photography</h4>
               <p>Dedicated photography stops at scenic locations. Professional photos of your group available.</p>
             </div>
 
             <div>
-              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>🍽️ Refreshments</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>Refreshments</h4>
               <p>Complimentary refreshments included. Full Day tours include lunch at selected local restaurants.</p>
             </div>
 
             <div>
-              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>🎯 Flexible Itinerary</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>Flexible Itinerary</h4>
               <p>Customize your tour based on your interests. We adjust pace and stops to match your preferences.</p>
             </div>
 
             <div>
-              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>🛡️ Safety & Insurance</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "12px" }}>Safety & Insurance</h4>
               <p>All tours include basic insurance. Professional safety briefing at the start of each tour.</p>
             </div>
 

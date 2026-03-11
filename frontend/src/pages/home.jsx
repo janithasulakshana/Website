@@ -13,7 +13,7 @@ export default function Home() {
         {/* Contact Info Section */}
         <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", alignItems: "center", marginTop: "15px", paddingTop: "15px", borderTop: "2px solid #ddd" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span>📞</span>
+            <span style={{ fontWeight: "bold" }}>Phone:</span>
             <a href={`tel:${CONTACT_INFO.phone}`} style={{ textDecoration: "none", color: "#333", fontWeight: "bold" }}>
               {CONTACT_INFO.phoneFormatted}
             </a>
@@ -31,7 +31,7 @@ export default function Home() {
             fontWeight: "bold",
             fontSize: "14px"
           }}>
-            💬 WhatsApp Chat
+            WhatsApp Chat
           </a>
           
           <a href={CONTACT_INFO.facebook} target="_blank" rel="noopener noreferrer" style={{ 
@@ -46,7 +46,7 @@ export default function Home() {
             fontWeight: "bold",
             fontSize: "14px"
           }}>
-            📘 Facebook Page
+            Facebook Page
           </a>
         </div>
         
@@ -54,8 +54,8 @@ export default function Home() {
       </div>
       {/* Hero Section */}
       <div style={{ maxWidth: "1200px", margin: "30px auto 40px", backgroundColor: "#e9ecef", padding: "40px 20px", borderRadius: "8px", textAlign: "center" }}>
-        <h1 style={{ fontSize: "48px", margin: "0 0 15px 0" }}>{COMPANY_INFO.name}</h1>
-        <p style={{ fontSize: "24px", color: "#666", margin: "15px 0" }}>{COMPANY_INFO.tagline}</p>
+        <h1 style={{ fontSize: "clamp(30px, 7vw, 48px)", margin: "0 0 15px 0" }}>{COMPANY_INFO.name}</h1>
+        <p style={{ fontSize: "clamp(18px, 5vw, 24px)", color: "#666", margin: "15px 0" }}>{COMPANY_INFO.tagline}</p>
         <p style={{ fontSize: "16px", lineHeight: "1.6", marginBottom: "25px" }}>{COMPANY_INFO.description}</p>
         <Link to="/tours" style={{ display: "inline-block", padding: "12px 30px", backgroundColor: "#007bff", color: "white", textDecoration: "none", borderRadius: "5px", fontSize: "16px", fontWeight: "bold" }}>View Our Tours</Link>
       </div>
@@ -66,7 +66,7 @@ export default function Home() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
           {TOUR_PACKAGES.map((tour) => (
             <div key={tour.id} style={{ border: "1px solid #ddd", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-              <div style={{ backgroundColor: "#007bff", color: "white", padding: "15px", fontSize: "20px" }}>{tour.icon} {tour.name}</div>
+                <div style={{ backgroundColor: "#007bff", color: "white", padding: "15px", fontSize: "20px" }}>{tour.name}</div>
               <div style={{ padding: "20px" }}>
                 <p><strong>Duration:</strong> {tour.duration}</p>
                 <p><strong>Price:</strong> <span style={{ fontSize: "24px", color: "#007bff", fontWeight: "bold" }}>${tour.price}</span></p>
@@ -84,7 +84,7 @@ export default function Home() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px" }}>
           {BENEFITS.map((benefit, i) => (
             <div key={i} style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "20px", textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-              <h3 style={{ fontSize: "40px", margin: "0 0 10px 0" }}>{benefit.icon}</h3>
+              <h3 style={{ fontSize: "24px", margin: "0 0 10px 0", color: "#007bff" }}>{benefit.icon}</h3>
               <h5 style={{ margin: "10px 0" }}>{benefit.title}</h5>
               <p style={{ color: "#666", fontSize: "14px", margin: "0" }}>{benefit.description}</p>
             </div>
@@ -101,7 +101,7 @@ export default function Home() {
               <p style={{ fontStyle: "italic", color: "#666", margin: "0 0 15px 0" }}>"{t.text}"</p>
               <p style={{ margin: "10px 0", fontWeight: "bold" }}>{t.name}</p>
               <p style={{ margin: "5px 0", color: "#999", fontSize: "14px" }}>{t.location}</p>
-              <p style={{ margin: "10px 0", color: "#f39c12" }}>★★★★★</p>
+              <p style={{ margin: "10px 0", color: "#f39c12" }}>5/5 rating</p>
             </div>
           ))}
         </div>
@@ -113,9 +113,9 @@ export default function Home() {
           <h2 style={{ margin: "0 0 15px 0" }}>Ready to Explore Colombo?</h2>
           <p style={{ fontSize: "18px", marginBottom: "30px", margin: "15px 0 30px 0" }}>Book your tour today!</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "15px" }}>
-            <a href={`tel:${CONTACT_INFO.phone}`} style={{ padding: "15px", backgroundColor: "white", color: "#007bff", textDecoration: "none", borderRadius: "5px", fontWeight: "bold" }}>📞 {CONTACT_INFO.phoneFormatted}</a>
-            <a href={`mailto:${CONTACT_INFO.email}`} style={{ padding: "15px", backgroundColor: "white", color: "#007bff", textDecoration: "none", borderRadius: "5px", fontWeight: "bold" }}>✉️ {CONTACT_INFO.email}</a>
-            <Link to="/booking" style={{ padding: "15px", backgroundColor: "#ffc107", color: "#333", textDecoration: "none", borderRadius: "5px", fontWeight: "bold" }}>📅 Book Online</Link>
+            <a href={`tel:${CONTACT_INFO.phone}`} style={{ padding: "15px", backgroundColor: "white", color: "#007bff", textDecoration: "none", borderRadius: "5px", fontWeight: "bold" }}>Call {CONTACT_INFO.phoneFormatted}</a>
+            <a href={`mailto:${CONTACT_INFO.email}`} style={{ padding: "15px", backgroundColor: "white", color: "#007bff", textDecoration: "none", borderRadius: "5px", fontWeight: "bold", wordBreak: "break-word" }}>Email {CONTACT_INFO.email}</a>
+            <Link to="/booking" style={{ padding: "15px", backgroundColor: "#ffc107", color: "#333", textDecoration: "none", borderRadius: "5px", fontWeight: "bold" }}>Book Online</Link>
           </div>
         </div>
       </div>
@@ -123,11 +123,11 @@ export default function Home() {
       {/* Commitment */}
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px 40px 20px" }}>
         <div style={{ backgroundColor: "#f0f0f0", padding: "40px 20px", borderRadius: "8px" }}>
-          <h3 style={{ marginBottom: "20px" }}>🎯 Our Commitment</h3>
+          <h3 style={{ marginBottom: "20px" }}>Our Commitment</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
             {COMMITMENT_POINTS.map((p, i) => (
               <div key={i}>
-                <h6 style={{ margin: "0 0 8px 0" }}>✓ {p.title}</h6>
+                <h6 style={{ margin: "0 0 8px 0" }}>{p.title}</h6>
                 <p style={{ margin: "0", fontSize: "14px", color: "#666" }}>{p.description}</p>
               </div>
             ))}

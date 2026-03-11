@@ -111,7 +111,6 @@ export default function AdminDashboard() {
     return (
       <div style={{ backgroundColor: "#ffffff", color: "#333333", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "48px", marginBottom: "20px" }}>⏳</div>
           <h2>Loading Dashboard...</h2>
         </div>
       </div>
@@ -124,7 +123,7 @@ export default function AdminDashboard() {
       <div style={{ backgroundColor: "#333", color: "white", padding: "20px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <h1 style={{ margin: "0", fontSize: "24px" }}>👨‍💼 Admin Dashboard</h1>
+            <h1 style={{ margin: "0", fontSize: "24px" }}>Admin Dashboard</h1>
             <p style={{ margin: "5px 0 0 0", fontSize: "14px", opacity: 0.8 }}>Lets Go Colombo Tours by J</p>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -169,7 +168,7 @@ export default function AdminDashboard() {
               borderBottom: activeTab === "bookings" ? "3px solid #007bff" : "2px solid #ddd"
             }}
           >
-            📅 Bookings ({bookings.length})
+            Bookings ({bookings.length})
           </button>
           <button
             onClick={() => setActiveTab("tours")}
@@ -186,7 +185,7 @@ export default function AdminDashboard() {
               borderBottom: activeTab === "tours" ? "3px solid #007bff" : "2px solid #ddd"
             }}
           >
-            🎫 Tours ({tours.length})
+            Tours ({tours.length})
           </button>
         </div>
 
@@ -292,7 +291,7 @@ export default function AdminDashboard() {
                 <div key={tour.id} style={{ backgroundColor: "#fff", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
                   <h3 style={{ marginTop: "0", color: "#007bff" }}>{tour.title}</h3>
                   <p style={{ margin: "10px 0", color: "#666" }}>{tour.description}</p>
-                  <p style={{ margin: "10px 0", fontWeight: "bold" }}>💰 Price: <span style={{ color: "#007bff" }}>${tour.price}</span></p>
+                  <p style={{ margin: "10px 0", fontWeight: "bold" }}>Price: <span style={{ color: "#007bff" }}>${tour.price}</span></p>
                   <p style={{ margin: "10px 0", fontSize: "12px", color: "#999" }}>Created: {new Date(tour.created_at).toLocaleDateString()}</p>
                 </div>
               ))}

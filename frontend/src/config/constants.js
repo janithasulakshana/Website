@@ -26,7 +26,7 @@ export const TOUR_PACKAGES = [
     name: "Half Day Tour",
     duration: "4-5 Hours",
     price: 55.99,
-    icon: "⏰",
+    icon: "HALF DAY",
     description: "Perfect for visitors with limited time, this quick tour showcases the most popular attractions in Colombo.",
     color: "primary",
     attractions: "2-3 major attractions",
@@ -44,7 +44,7 @@ export const TOUR_PACKAGES = [
     name: "Full Day Tour",
     duration: "8-10 Hours",
     price: 66.99,
-    icon: "🌅",
+    icon: "FULL DAY",
     description: "Discover Colombo's essence on our Full-Day Tour. Explore iconic landmarks and immerse in the city's rich culture.",
     color: "warning",
     attractions: "5-7 major attractions",
@@ -63,7 +63,7 @@ export const TOUR_PACKAGES = [
     name: "Tuk Tuk Safari",
     duration: "4 Hours",
     price: 32.99,
-    icon: "🛺",
+    icon: "TUK TUK",
     description: "Explore Colombo's charm in a unique way. Discover iconic landmarks and hidden gems with our adventurous tuk tuk experience.",
     color: "info",
     attractions: "3-4 major attractions",
@@ -82,17 +82,17 @@ export const TOUR_FEATURES = [
   {
     title: "Cultural Heritage",
     description: "Visit historic temples, museums, and colonial-era buildings that tell the story of Colombo.",
-    icon: "🏛️"
+    icon: "HERITAGE"
   },
   {
     title: "Modern Attractions",
     description: "Experience Colombo's skyline, Lotus Tower, and contemporary development projects.",
-    icon: "🌆"
+    icon: "MODERN"
   },
   {
     title: "Local Experiences",
     description: "Connect with local guides and discover authentic Colombo through personalized tours.",
-    icon: "🤝"
+    icon: "LOCAL"
   }
 ];
 
@@ -100,22 +100,22 @@ export const BENEFITS = [
   {
     title: "Free Hotel Pickup",
     description: "We pick up travelers from Colombo 1-15 for free of charge. You can also enter your own location.",
-    icon: "🚗"
+    icon: "PICKUP"
   },
   {
     title: "Cheapest Prices",
     description: "We offer the most competitive pricing for city tours in town without compromising quality.",
-    icon: "💰"
+    icon: "VALUE"
   },
   {
     title: "Comfortable Rides",
     description: "Travel in comfort with our air-conditioned vehicles. Maximum 3 people per tour for personalized service.",
-    icon: "😊"
+    icon: "COMFORT"
   },
   {
     title: "Expert Guides",
     description: "Our expert guides provide friendly, knowledgeable service with deep insights about Colombo's attractions.",
-    icon: "👨‍🏫"
+    icon: "GUIDE"
   }
 ];
 

@@ -74,7 +74,6 @@ export default function Booking() {
     return (
       <div style={{ backgroundColor: "#ffffff", color: "#333333", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "64px", marginBottom: "20px" }}>✓</div>
           <h2 style={{ fontSize: "32px", marginBottom: "10px" }}>Booking Submitted!</h2>
           <p style={{ fontSize: "18px", color: "#666" }}>Thank you! We'll contact you soon with confirmation details.</p>
           <p style={{ fontSize: "14px", color: "#999" }}>Redirecting to success page...</p>
@@ -89,12 +88,12 @@ export default function Booking() {
         
         {/* Page Header */}
         <div style={{ textAlign: "center", marginBottom: "50px" }}>
-          <h1 style={{ fontSize: "48px", marginBottom: "10px" }}>Book Your Tour</h1>
+          <h1 style={{ fontSize: "clamp(30px, 7vw, 48px)", marginBottom: "10px" }}>Book Your Tour</h1>
           <p style={{ fontSize: "18px", color: "#666" }}>Complete the form below to reserve your spot</p>
         </div>
 
         {/* Main Content */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", marginBottom: "50px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "40px", marginBottom: "50px" }}>
           
           {/* Booking Form */}
           <div>
@@ -346,7 +345,7 @@ export default function Booking() {
               padding: "25px",
               marginBottom: "30px"
             }}>
-              <h3 style={{ fontSize: "18px", marginTop: "0", marginBottom: "15px" }}>ℹ️ Booking Information</h3>
+              <h3 style={{ fontSize: "18px", marginTop: "0", marginBottom: "15px" }}>Booking Information</h3>
               <ul style={{ margin: "0", paddingLeft: "20px", lineHeight: "1.8" }}>
                 <li>Pickup is included in all packages</li>
                 <li>All bookings require a minimum 24-hour notice</li>
@@ -362,7 +361,7 @@ export default function Booking() {
               padding: "25px",
               borderLeft: "4px solid #28a745"
             }}>
-              <h3 style={{ fontSize: "18px", marginTop: "0", marginBottom: "20px" }}>📞 Need Help?</h3>
+              <h3 style={{ fontSize: "18px", marginTop: "0", marginBottom: "20px" }}>Need Help?</h3>
               
               <div style={{ marginBottom: "15px" }}>
                 <p style={{ margin: "0 0 8px 0", color: "#666", fontSize: "14px" }}>WhatsApp</p>
@@ -381,7 +380,7 @@ export default function Booking() {
                     fontWeight: "bold"
                   }}
                 >
-                  💬 Chat on WhatsApp
+                  Chat on WhatsApp
                 </a>
               </div>
 
@@ -422,7 +421,7 @@ export default function Booking() {
         <div style={{ backgroundColor: "#f8f9fa", borderRadius: "8px", padding: "40px", marginBottom: "50px" }}>
           <h2 style={{ fontSize: "32px", marginBottom: "30px", textAlign: "center" }}>Frequently Asked Questions</h2>
           
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "30px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "30px" }}>
             <div>
               <h4 style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "10px" }}>What's included in the tour?</h4>
               <p style={{ margin: "0", color: "#666", lineHeight: "1.6" }}>

@@ -21,11 +21,11 @@ export default function App() {
   return (
     <Router>
       <nav style={{ backgroundColor: "#333", padding: "12px 0", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Link to="/" style={{ color: "white", textDecoration: "none", fontSize: "20px", fontWeight: "bold" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+          <Link to="/" style={{ color: "white", textDecoration: "none", fontSize: "clamp(16px, 4vw, 20px)", fontWeight: "bold" }}>
             Lets Go Colombo Tours by J
           </Link>
-          <ul style={{ display: "flex", listStyle: "none", margin: "0", padding: "0", gap: "20px", alignItems: "center" }}>
+          <ul style={{ display: "flex", listStyle: "none", margin: "0", padding: "0", gap: "10px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
             <li><Link to="/" style={{ color: "white", textDecoration: "none", padding: "8px 12px" }}>Home</Link></li>
             <li><Link to="/booking" style={{ color: "white", textDecoration: "none", padding: "8px 12px", backgroundColor: "#ffc107", color: "#333", borderRadius: "5px", fontWeight: "bold" }}>Book Now</Link></li>
             <li><Link to="/packages" style={{ color: "white", textDecoration: "none", padding: "8px 12px" }}>Packages</Link></li>
@@ -42,7 +42,7 @@ export default function App() {
                   fontSize: "16px"
                 }}
               >
-                More ▼
+                More
               </button>
               {showMoreMenu && (
                 <div style={{
@@ -57,16 +57,16 @@ export default function App() {
                   marginTop: "8px"
                 }}>
                   <Link to="/gallery" style={{ display: "block", color: "white", textDecoration: "none", padding: "12px 20px", borderBottom: "1px solid #444" }} onClick={() => setShowMoreMenu(false)}>
-                    🖼️ Gallery
+                    Gallery
                   </Link>
                   <Link to="/privacy" style={{ display: "block", color: "white", textDecoration: "none", padding: "12px 20px", borderBottom: "1px solid #444" }} onClick={() => setShowMoreMenu(false)}>
-                    🔒 Privacy Policy
+                    Privacy Policy
                   </Link>
                   <Link to="/terms" style={{ display: "block", color: "white", textDecoration: "none", padding: "12px 20px", borderBottom: "1px solid #444" }} onClick={() => setShowMoreMenu(false)}>
-                    📋 Terms & Conditions
+                    Terms & Conditions
                   </Link>
                   <Link to="/blog" style={{ display: "block", color: "white", textDecoration: "none", padding: "12px 20px" }} onClick={() => setShowMoreMenu(false)}>
-                    📝 Blog
+                    Blog
                   </Link>
                 </div>
               )}

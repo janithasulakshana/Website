@@ -25,26 +25,26 @@ export default function Contact() {
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         
         {/* Page Title */}
-        <h1 style={{ textAlign: "center", fontSize: "48px", marginBottom: "10px" }}>Get In Touch</h1>
+        <h1 style={{ textAlign: "center", fontSize: "clamp(30px, 7vw, 48px)", marginBottom: "10px" }}>Get In Touch</h1>
         <p style={{ textAlign: "center", fontSize: "18px", color: "#666", marginBottom: "50px" }}>
           We'd love to hear from you. Contact us with any questions!
         </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "40px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "40px" }}>
           
           {/* Contact Information */}
           <div>
             <h2 style={{ fontSize: "28px", marginBottom: "30px" }}>Contact Information</h2>
             
             <div style={{ marginBottom: "30px" }}>
-              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>📞 Phone</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>Phone</h4>
               <a href={`tel:${CONTACT_INFO.phone}`} style={{ fontSize: "18px", color: "#333", textDecoration: "none", fontWeight: "bold" }}>
                 {CONTACT_INFO.phoneFormatted}
               </a>
             </div>
 
             <div style={{ marginBottom: "30px" }}>
-              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>💬 WhatsApp Chat</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>WhatsApp Chat</h4>
               <a href="https://wa.me/message/2EY6AGCVL5WRG1" target="_blank" rel="noopener noreferrer" style={{ 
                 display: "inline-block",
                 padding: "12px 24px", 
@@ -55,19 +55,19 @@ export default function Contact() {
                 fontWeight: "bold",
                 fontSize: "16px"
               }}>
-                💬 Click to Chat on WhatsApp
+                Click to Chat on WhatsApp
               </a>
             </div>
 
             <div style={{ marginBottom: "30px" }}>
-              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>📧 Email</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>Email</h4>
               <a href={`mailto:${CONTACT_INFO.email}`} style={{ fontSize: "18px", color: "#333", textDecoration: "none" }}>
                 {CONTACT_INFO.email}
               </a>
             </div>
 
             <div style={{ marginBottom: "30px" }}>
-              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>📱 WhatsApp Number</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>WhatsApp Number</h4>
               <p style={{ fontSize: "18px", margin: "0" }}>
                 <a href={`https://wa.me/${CONTACT_INFO.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{ color: "#333", textDecoration: "none" }}>
                   {CONTACT_INFO.phoneFormatted}
@@ -76,7 +76,7 @@ export default function Contact() {
             </div>
 
             <div style={{ marginBottom: "30px" }}>
-              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>👥 Follow Us</h4>
+              <h4 style={{ color: "#007bff", marginBottom: "10px" }}>Follow Us</h4>
               <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
                 <a href={CONTACT_INFO.facebook} target="_blank" rel="noopener noreferrer" style={{ 
                   padding: "10px 20px",
@@ -86,7 +86,7 @@ export default function Contact() {
                   borderRadius: "5px",
                   fontWeight: "bold"
                 }}>
-                  📘 Facebook Page
+                  Facebook Page
                 </a>
                 <a href={CONTACT_INFO.instagram} target="_blank" rel="noopener noreferrer" style={{ 
                   padding: "10px 20px",
@@ -96,13 +96,13 @@ export default function Contact() {
                   borderRadius: "5px",
                   fontWeight: "bold"
                 }}>
-                  📷 Instagram
+                  Instagram
                 </a>
               </div>
             </div>
 
             <div style={{ backgroundColor: "#f0f0f0", padding: "20px", borderRadius: "8px", marginTop: "30px" }}>
-              <h4 style={{ marginBottom: "10px" }}>✓ Business Hours</h4>
+              <h4 style={{ marginBottom: "10px" }}>Business Hours</h4>
               <p style={{ margin: "5px 0" }}>Weekdays: 8:00 AM - 6:00 PM</p>
               <p style={{ margin: "5px 0" }}>Weekends: 8:00 AM - 7:00 PM</p>
               <p style={{ margin: "5px 0" }}>Holidays: By Appointment</p>
@@ -122,7 +122,7 @@ export default function Contact() {
                 borderRadius: "8px",
                 textAlign: "center"
               }}>
-                <h4 style={{ margin: "0 0 10px 0" }}>✅ Thank You!</h4>
+                <h4 style={{ margin: "0 0 10px 0" }}>Thank You!</h4>
                 <p>We've received your message and will get back to you soon.</p>
               </div>
             ) : (
