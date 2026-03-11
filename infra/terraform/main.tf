@@ -11,6 +11,9 @@ terraform {
 
 provider "azurerm" {
   features {}
+  # CI identity may not have permissions to register providers.
+  # Keep registration explicit/out-of-band to avoid transient 409 conflicts.
+  resource_provider_registrations = "none"
 }
 
 resource "azurerm_resource_group" "this" {
