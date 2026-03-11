@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   terraform-plan:
@@ -28,6 +28,7 @@ jobs:
       run:
         working-directory: infra/terraform
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       TF_VAR_resource_group_name: ${{ vars.TF_VAR_resource_group_name || vars.RESOURCE_GROUP_NAME }}
       TF_VAR_static_web_app_name: ${{ vars.TF_VAR_static_web_app_name || vars.STATIC_WEB_APP_NAME }}
       TF_VAR_location: ${{ vars.TF_VAR_location || 'East US 2' }}
@@ -42,6 +43,12 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Debug workflow inputs
+        run: |
+          echo "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=${FORCE_JAVASCRIPT_ACTIONS_TO_NODE24}"
+          echo "TF_VAR_resource_group_name set: $([ -n \"${TF_VAR_resource_group_name}\" ] && echo yes || echo no)"
+          echo "TF_VAR_static_web_app_name set: $([ -n \"${TF_VAR_static_web_app_name}\" ] && echo yes || echo no)"
 
       - name: Azure Login (OIDC)
         if: ${{ env.AZURE_CREDENTIALS == '' }}
