@@ -25,8 +25,8 @@ jobs:
       run:
         working-directory: infra/terraform
     env:
-      TF_VAR_resource_group_name: ${{ vars.TF_VAR_resource_group_name }}
-      TF_VAR_static_web_app_name: ${{ vars.TF_VAR_static_web_app_name }}
+      TF_VAR_resource_group_name: ${{ vars.TF_VAR_resource_group_name || vars.RESOURCE_GROUP_NAME }}
+      TF_VAR_static_web_app_name: ${{ vars.TF_VAR_static_web_app_name || vars.STATIC_WEB_APP_NAME }}
       TF_VAR_location: ${{ vars.TF_VAR_location || 'East US 2' }}
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -56,6 +56,21 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+
+      - name: Validate required Terraform variables
+        run: |
+          missing=0
+          if [ -z "${TF_VAR_resource_group_name}" ]; then
+            echo "ERROR: Missing GitHub variable TF_VAR_resource_group_name (or fallback RESOURCE_GROUP_NAME)."
+            missing=1
+          fi
+          if [ -z "${TF_VAR_static_web_app_name}" ]; then
+            echo "ERROR: Missing GitHub variable TF_VAR_static_web_app_name (or fallback STATIC_WEB_APP_NAME)."
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
