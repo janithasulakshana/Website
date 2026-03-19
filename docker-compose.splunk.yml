@@ -1,0 +1,52 @@
+services:
+  backend:
+    logging:
+      driver: splunk
+      options:
+        splunk-token: ${SPLUNK_HEC_TOKEN}
+        splunk-url: ${SPLUNK_HEC_URL}
+        splunk-format: json
+        splunk-source: docker
+        splunk-sourcetype: lets-go:container
+        splunk-index: ${SPLUNK_INDEX:-main}
+        splunk-insecureskipverify: "${SPLUNK_INSECURE_SKIP_VERIFY:-true}"
+        tag: "{{.Name}}"
+
+  frontend:
+    logging:
+      driver: splunk
+      options:
+        splunk-token: ${SPLUNK_HEC_TOKEN}
+        splunk-url: ${SPLUNK_HEC_URL}
+        splunk-format: json
+        splunk-source: docker
+        splunk-sourcetype: lets-go:container
+        splunk-index: ${SPLUNK_INDEX:-main}
+        splunk-insecureskipverify: "${SPLUNK_INSECURE_SKIP_VERIFY:-true}"
+        tag: "{{.Name}}"
+
+  prometheus:
+    logging:
+      driver: splunk
+      options:
+        splunk-token: ${SPLUNK_HEC_TOKEN}
+        splunk-url: ${SPLUNK_HEC_URL}
+        splunk-format: json
+        splunk-source: docker
+        splunk-sourcetype: lets-go:container
+        splunk-index: ${SPLUNK_INDEX:-main}
+        splunk-insecureskipverify: "${SPLUNK_INSECURE_SKIP_VERIFY:-true}"
+        tag: "{{.Name}}"
+
+  grafana:
+    logging:
+      driver: splunk
+      options:
+        splunk-token: ${SPLUNK_HEC_TOKEN}
+        splunk-url: ${SPLUNK_HEC_URL}
+        splunk-format: json
+        splunk-source: docker
+        splunk-sourcetype: lets-go:container
+        splunk-index: ${SPLUNK_INDEX:-main}
+        splunk-insecureskipverify: "${SPLUNK_INSECURE_SKIP_VERIFY:-true}"
+        tag: "{{.Name}}"
