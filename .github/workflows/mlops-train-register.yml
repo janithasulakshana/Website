@@ -1,0 +1,119 @@
+name: MLOps Train and Register
+
+on:
+  workflow_dispatch:
+    inputs:
+      model_version:
+        description: Optional model version override
+        required: false
+        default: ""
+      mae_threshold:
+        description: Maximum acceptable MAE for promotion
+        required: false
+        default: "2.5"
+  push:
+    branches:
+      - main
+    paths:
+      - mlops/**
+      - backend/bookings.db
+      - .github/workflows/mlops-train-register.yml
+
+jobs:
+  train-evaluate-register:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    env:
+      MODEL_NAME: tour-demand-forecast
+      MODEL_VERSION: ${{ github.event.inputs.model_version }}
+      MAE_THRESHOLD: ${{ github.event.inputs.mae_threshold || '2.5' }}
+      AWS_REGION: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
+      MLOPS_BUCKET: ${{ vars.MLOPS_BUCKET }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install MLOps dependencies
+        run: pip install -r mlops/requirements.txt
+
+      - name: Extract bookings dataset
+        run: python mlops/extract_bookings.py --db-path backend/bookings.db --output mlops/artifacts/datasets/bookings.csv
+
+      - name: Train and package model
+        run: |
+          if [ -n "${MODEL_VERSION}" ]; then
+            python mlops/train_and_package.py --input mlops/artifacts/datasets/bookings.csv --model-name ${MODEL_NAME} --version ${MODEL_VERSION}
+          else
+            python mlops/train_and_package.py --input mlops/artifacts/datasets/bookings.csv --model-name ${MODEL_NAME}
+          fi
+
+      - name: Read latest model metadata
+        id: latest
+        run: |
+          VERSION=$(python - <<'PY'
+import json
+from pathlib import Path
+p = Path('mlops/artifacts/models/tour-demand-forecast/latest.json')
+print(json.loads(p.read_text(encoding='utf-8'))['version'])
+PY
+)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Enforce evaluation threshold gate
+        run: |
+          python - <<'PY'
+import json
+import os
+from pathlib import Path
+
+threshold = float(os.environ['MAE_THRESHOLD'])
+metrics_path = Path('mlops/artifacts/models/tour-demand-forecast') / os.environ['MODEL_VERSION_RUNTIME'] / 'metrics.json'
+metrics = json.loads(metrics_path.read_text(encoding='utf-8'))
+mae = float(metrics['mae'])
+print(f"MAE={mae}, threshold={threshold}")
+if mae > threshold:
+    raise SystemExit(f"Model rejected: MAE {mae} exceeds threshold {threshold}")
+PY
+        env:
+          MODEL_VERSION_RUNTIME: ${{ steps.latest.outputs.version }}
+
+      - name: Configure AWS credentials
+        if: ${{ env.MLOPS_BUCKET != '' && secrets.AWS_ROLE_TO_ASSUME != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload versioned artifacts to S3
+        if: ${{ env.MLOPS_BUCKET != '' && secrets.AWS_ROLE_TO_ASSUME != '' }}
+        run: |
+          VERSION=${{ steps.latest.outputs.version }}
+          BASE=s3://${MLOPS_BUCKET}/ml/models/${MODEL_NAME}/${VERSION}
+          aws s3 cp mlops/artifacts/models/${MODEL_NAME}/${VERSION}/model.tar.gz ${BASE}/model.tar.gz
+          aws s3 cp mlops/artifacts/models/${MODEL_NAME}/${VERSION}/model.json ${BASE}/model.json
+          aws s3 cp mlops/artifacts/models/${MODEL_NAME}/${VERSION}/metrics.json ${BASE}/metrics.json
+          aws s3 cp mlops/artifacts/models/${MODEL_NAME}/latest.json s3://${MLOPS_BUCKET}/ml/latest/${MODEL_NAME}.json
+
+      - name: Promote model to GitOps config
+        run: python mlops/promote_model_to_gitops.py --latest-file mlops/artifacts/models/tour-demand-forecast/latest.json --configmap configmap-ml-model.yaml --s3-bucket "${MLOPS_BUCKET}" --region "${AWS_REGION}"
+
+      - name: Commit promotion files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add configmap-ml-model.yaml mlops/model_release.json mlops/artifacts/models/${MODEL_NAME}/latest.json
+          if git diff --cached --quiet; then
+            echo "No promotion changes to commit"
+            exit 0
+          fi
+          git commit -m "mlops: promote ${MODEL_NAME}:${{ steps.latest.outputs.version }}"
+          git push

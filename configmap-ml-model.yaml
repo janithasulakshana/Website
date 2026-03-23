@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-model-config
+  labels:
+    app.kubernetes.io/name: website-backend
+    app.kubernetes.io/part-of: mlops
+data:
+  MODEL_NAME: "tour-demand-forecast"
+  MODEL_VERSION: "bootstrap"
+  MODEL_ARTIFACT_URI: ""
+  MODEL_REGION: "ap-southeast-1"

@@ -1,0 +1,169 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: MLOps foundation stack (S3, IAM, Lambda, MWAA)
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: website-mlops
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, stage, prod]
+  MwaaSubnet1:
+    Type: String
+    Description: Subnet ID for MWAA (private)
+  MwaaSubnet2:
+    Type: String
+    Description: Subnet ID for MWAA (private)
+  MwaaSecurityGroup:
+    Type: String
+    Description: Security group ID for MWAA
+  LambdaCodeS3Bucket:
+    Type: String
+    Description: S3 bucket containing lambda zip
+  LambdaCodeS3Key:
+    Type: String
+    Description: S3 key for lambda zip
+
+Resources:
+  MLOpsArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectName}-${Environment}-artifacts-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+
+  MLOpsDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectName}-${Environment}-data-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+
+  InferenceLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-${Environment}-inference-lambda-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ReadModelArtifacts
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub "${MLOpsArtifactsBucket.Arn}/*"
+
+  BatchInferenceLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-${Environment}-batch-inference"
+      Runtime: python3.11
+      Handler: app.lambda_handler
+      Timeout: 60
+      MemorySize: 512
+      Role: !GetAtt InferenceLambdaRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaCodeS3Bucket
+        S3Key: !Ref LambdaCodeS3Key
+      Environment:
+        Variables:
+          MODEL_BUCKET: !Ref MLOpsArtifactsBucket
+          MODEL_POINTER_KEY: ml/latest/tour-demand-forecast.json
+
+  MwaaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-${Environment}-mwaa-execution-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: airflow.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonMWAAServiceRolePolicy
+      Policies:
+        - PolicyName: MwaaMLOpsAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt MLOpsArtifactsBucket.Arn
+                  - !Sub "${MLOpsArtifactsBucket.Arn}/*"
+                  - !GetAtt MLOpsDataBucket.Arn
+                  - !Sub "${MLOpsDataBucket.Arn}/*"
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: !GetAtt BatchInferenceLambda.Arn
+
+  MwaaEnvironment:
+    Type: AWS::MWAA::Environment
+    Properties:
+      Name: !Sub "${ProjectName}-${Environment}"
+      DagS3Path: dags
+      SourceBucketArn: !GetAtt MLOpsArtifactsBucket.Arn
+      ExecutionRoleArn: !GetAtt MwaaExecutionRole.Arn
+      NetworkConfiguration:
+        SecurityGroupIds:
+          - !Ref MwaaSecurityGroup
+        SubnetIds:
+          - !Ref MwaaSubnet1
+          - !Ref MwaaSubnet2
+      LoggingConfiguration:
+        DagProcessingLogs:
+          Enabled: true
+          LogLevel: INFO
+        SchedulerLogs:
+          Enabled: true
+          LogLevel: INFO
+        TaskLogs:
+          Enabled: true
+          LogLevel: INFO
+        WebserverLogs:
+          Enabled: true
+          LogLevel: INFO
+        WorkerLogs:
+          Enabled: true
+          LogLevel: INFO
+      EnvironmentClass: mw1.small
+      MaxWorkers: 2
+      MinWorkers: 1
+      WebserverAccessMode: PRIVATE_ONLY
+
+Outputs:
+  ArtifactsBucketName:
+    Value: !Ref MLOpsArtifactsBucket
+  DataBucketName:
+    Value: !Ref MLOpsDataBucket
+  InferenceLambdaArn:
+    Value: !GetAtt BatchInferenceLambda.Arn
+  MwaaEnvironmentName:
+    Value: !Ref MwaaEnvironment
