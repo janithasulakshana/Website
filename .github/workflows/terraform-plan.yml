@@ -1,16 +1,6 @@
 name: Terraform Plan (Azure SWA)
 
 on:
-  pull_request:
-    branches: ["main"]
-    paths:
-      - "infra/terraform/**"
-      - ".github/workflows/terraform-plan.yml"
-  push:
-    branches: ["main"]
-    paths:
-      - "infra/terraform/**"
-      - ".github/workflows/terraform-plan.yml"
   workflow_dispatch:
 
 permissions:
