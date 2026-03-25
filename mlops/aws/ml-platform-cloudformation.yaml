@@ -1,0 +1,496 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ML learning platform using CloudFormation, Step Functions, Lambda, ECS Fargate, and S3.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: website-ml
+  EnvironmentName:
+    Type: String
+    Default: dev
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet::Id
+    Description: Task subnet A (use a public subnet if private subnets are not available)
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet::Id
+    Description: Task subnet B (use a public subnet if private subnets are not available)
+  EcsSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+  PipelineImageUri:
+    Type: String
+    Description: ECR image URI used by pipeline and serving tasks.
+  ServingDesiredCount:
+    Type: Number
+    Default: 1
+    MinValue: 1
+  TaskAssignPublicIp:
+    Type: String
+    Default: ENABLED
+    AllowedValues:
+      - ENABLED
+      - DISABLED
+
+Resources:
+  MLDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  MLModelBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  MLPipelineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${ProjectName}/${EnvironmentName}/pipeline
+      RetentionInDays: 30
+
+  MLServingLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${ProjectName}/${EnvironmentName}/serving
+      RetentionInDays: 30
+
+  MLStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/states/${ProjectName}-${EnvironmentName}
+      RetentionInDays: 30
+
+  MLLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ml-lambda-s3-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource:
+                  - !Sub ${MLDataBucket.Arn}/*
+                  - !Sub ${MLModelBucket.Arn}/*
+
+  DataIngestionFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-${EnvironmentName}-ingest
+      Runtime: python3.12
+      Handler: index.handler
+      Timeout: 60
+      Role: !GetAtt MLLambdaRole.Arn
+      Environment:
+        Variables:
+          DATA_BUCKET: !Ref MLDataBucket
+      Code:
+        ZipFile: |
+          import json
+          import random
+          import os
+          import datetime as dt
+          import boto3
+
+          def synthesize(use_case):
+              random.seed(42)
+              rows = []
+              for day in range(1, 31):
+                  rows.append({
+                      "day": day,
+                      "searches": 80 + random.randint(-20, 40),
+                      "bookings": 25 + random.randint(-8, 12),
+                      "price": 40 + random.randint(0, 20),
+                      "weekday": day % 7,
+                      "cancellation_rate": round(max(0.03, min(0.35, 0.08 + random.random() * 0.2)), 3),
+                      "tour_id": f"tour-{(day % 6) + 1}"
+                  })
+              if use_case == "recommendation":
+                  for i, row in enumerate(rows):
+                      row["user_segment"] = ["adventure", "family", "culture"][i % 3]
+                      row["clicked"] = 1 if row["bookings"] > 30 else 0
+              return rows
+
+          def handler(event, _context):
+              use_case = event.get("use_case", "demand_forecasting")
+              if use_case not in {"demand_forecasting", "recommendation", "cancellation_prediction", "dynamic_pricing"}:
+                  raise ValueError("Unsupported use_case")
+
+              key = f"raw/{use_case}/training-data.json"
+              payload = synthesize(use_case)
+              s3 = boto3.client("s3")
+              s3.put_object(
+                  Bucket=os.environ["DATA_BUCKET"],
+                  Key=key,
+                  Body=json.dumps(payload).encode("utf-8"),
+                  ContentType="application/json"
+              )
+
+              return {
+                  "use_case": use_case,
+                  "rows": len(payload),
+                  "raw_key": key,
+                  "ingested_at": dt.datetime.utcnow().isoformat() + "Z"
+              }
+
+  ModelRegistryFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-${EnvironmentName}-registry
+      Runtime: python3.12
+      Handler: index.handler
+      Timeout: 60
+      Role: !GetAtt MLLambdaRole.Arn
+      Environment:
+        Variables:
+          MODEL_BUCKET: !Ref MLModelBucket
+      Code:
+        ZipFile: |
+          import os
+          import json
+          import datetime as dt
+          import boto3
+
+          def handler(event, _context):
+              use_case = event.get("use_case", "demand_forecasting")
+              key = f"registry/{use_case}/latest.json"
+
+              metadata = {
+                  "use_case": use_case,
+                  "model_key": f"models/{use_case}/model.json",
+                  "evaluation_key": f"evaluation/{use_case}/evaluation.json",
+                  "registered_at": dt.datetime.utcnow().isoformat() + "Z"
+              }
+
+              s3 = boto3.client("s3")
+              s3.put_object(
+                  Bucket=os.environ["MODEL_BUCKET"],
+                  Key=key,
+                  Body=json.dumps(metadata).encode("utf-8"),
+                  ContentType="application/json"
+              )
+
+              return metadata
+
+  MLEcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub ${ProjectName}-${EnvironmentName}-cluster
+
+  MLEcsTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  MLEcsTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ml-task-s3-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt MLDataBucket.Arn
+                  - !Sub ${MLDataBucket.Arn}/*
+                  - !GetAtt MLModelBucket.Arn
+                  - !Sub ${MLModelBucket.Arn}/*
+
+  MLPipelineTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${ProjectName}-${EnvironmentName}-pipeline
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: '512'
+      Memory: '1024'
+      ExecutionRoleArn: !GetAtt MLEcsTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt MLEcsTaskRole.Arn
+      ContainerDefinitions:
+        - Name: ml-pipeline
+          Image: !Ref PipelineImageUri
+          Essential: true
+          Environment:
+            - Name: ML_DATA_BUCKET
+              Value: !Ref MLDataBucket
+            - Name: ML_MODEL_BUCKET
+              Value: !Ref MLModelBucket
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref MLPipelineLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: pipeline
+
+  MLServingTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${ProjectName}-${EnvironmentName}-serving
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: '512'
+      Memory: '1024'
+      ExecutionRoleArn: !GetAtt MLEcsTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt MLEcsTaskRole.Arn
+      ContainerDefinitions:
+        - Name: ml-serving
+          Image: !Ref PipelineImageUri
+          Essential: true
+          PortMappings:
+            - ContainerPort: 8080
+              Protocol: tcp
+          Command:
+            - python
+            - mlops/container/serve.py
+          Environment:
+            - Name: ML_MODEL_BUCKET
+              Value: !Ref MLModelBucket
+            - Name: DEFAULT_USE_CASE
+              Value: demand_forecasting
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref MLServingLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: serving
+
+  MLServingService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub ${ProjectName}-${EnvironmentName}-serving
+      Cluster: !Ref MLEcsCluster
+      TaskDefinition: !Ref MLServingTaskDefinition
+      DesiredCount: !Ref ServingDesiredCount
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: !Ref TaskAssignPublicIp
+          SecurityGroups:
+            - !Ref EcsSecurityGroupId
+          Subnets:
+            - !Ref PrivateSubnetA
+            - !Ref PrivateSubnetB
+
+  MLStepFunctionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ml-step-functions-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !GetAtt DataIngestionFunction.Arn
+                  - !GetAtt ModelRegistryFunction.Arn
+              - Effect: Allow
+                Action:
+                  - ecs:RunTask
+                  - ecs:DescribeTasks
+                  - ecs:StopTask
+                Resource:
+                  - !Ref MLPipelineTaskDefinition
+              - Effect: Allow
+                Action: iam:PassRole
+                Resource:
+                  - !GetAtt MLEcsTaskExecutionRole.Arn
+                  - !GetAtt MLEcsTaskRole.Arn
+              - Effect: Allow
+                Action:
+                  - events:PutTargets
+                  - events:PutRule
+                  - events:DescribeRule
+                Resource: !Sub arn:aws:events:${AWS::Region}:${AWS::AccountId}:rule/StepFunctionsGetEventsForECSTaskRule
+
+  MLLifecycleStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Sub ${ProjectName}-${EnvironmentName}-ml-lifecycle
+      RoleArn: !GetAtt MLStepFunctionsRole.Arn
+      LoggingConfiguration:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt MLStateMachineLogGroup.Arn
+        IncludeExecutionData: true
+        Level: ALL
+      DefinitionString: !Sub |
+        {
+          "Comment": "ML lifecycle orchestrator for all learning use cases",
+          "StartAt": "IngestData",
+          "States": {
+            "IngestData": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "OutputPath": "$.Payload",
+              "Parameters": {
+                "FunctionName": "${DataIngestionFunction.Arn}",
+                "Payload.$": "$"
+              },
+              "Next": "FeatureEngineering"
+            },
+            "FeatureEngineering": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::ecs:runTask.sync",
+              "Parameters": {
+                "LaunchType": "FARGATE",
+                "Cluster": "${MLEcsCluster.Arn}",
+                "TaskDefinition": "${MLPipelineTaskDefinition}",
+                "NetworkConfiguration": {
+                  "AwsvpcConfiguration": {
+                    "Subnets": ["${PrivateSubnetA}", "${PrivateSubnetB}"],
+                    "SecurityGroups": ["${EcsSecurityGroupId}"],
+                    "AssignPublicIp": "${TaskAssignPublicIp}"
+                  }
+                },
+                "Overrides": {
+                  "ContainerOverrides": [
+                    {
+                      "Name": "ml-pipeline",
+                      "Command.$": "States.Array('python','mlops/container/runner.py','--stage','feature-engineering','--use-case',$.use_case)"
+                    }
+                  ]
+                }
+              },
+              "Next": "TrainModel"
+            },
+            "TrainModel": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::ecs:runTask.sync",
+              "Parameters": {
+                "LaunchType": "FARGATE",
+                "Cluster": "${MLEcsCluster.Arn}",
+                "TaskDefinition": "${MLPipelineTaskDefinition}",
+                "NetworkConfiguration": {
+                  "AwsvpcConfiguration": {
+                    "Subnets": ["${PrivateSubnetA}", "${PrivateSubnetB}"],
+                    "SecurityGroups": ["${EcsSecurityGroupId}"],
+                    "AssignPublicIp": "${TaskAssignPublicIp}"
+                  }
+                },
+                "Overrides": {
+                  "ContainerOverrides": [
+                    {
+                      "Name": "ml-pipeline",
+                      "Command.$": "States.Array('python','mlops/container/runner.py','--stage','train','--use-case',$.use_case)"
+                    }
+                  ]
+                }
+              },
+              "Next": "EvaluateModel"
+            },
+            "EvaluateModel": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::ecs:runTask.sync",
+              "Parameters": {
+                "LaunchType": "FARGATE",
+                "Cluster": "${MLEcsCluster.Arn}",
+                "TaskDefinition": "${MLPipelineTaskDefinition}",
+                "NetworkConfiguration": {
+                  "AwsvpcConfiguration": {
+                    "Subnets": ["${PrivateSubnetA}", "${PrivateSubnetB}"],
+                    "SecurityGroups": ["${EcsSecurityGroupId}"],
+                    "AssignPublicIp": "${TaskAssignPublicIp}"
+                  }
+                },
+                "Overrides": {
+                  "ContainerOverrides": [
+                    {
+                      "Name": "ml-pipeline",
+                      "Command.$": "States.Array('python','mlops/container/runner.py','--stage','evaluate','--use-case',$.use_case)"
+                    }
+                  ]
+                }
+              },
+              "Next": "RegisterModel"
+            },
+            "RegisterModel": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "OutputPath": "$.Payload",
+              "Parameters": {
+                "FunctionName": "${ModelRegistryFunction.Arn}",
+                "Payload": {
+                  "use_case.$": "$.use_case"
+                }
+              },
+              "End": true
+            }
+          }
+        }
+
+Outputs:
+  StateMachineArn:
+    Description: ARN of the ML lifecycle state machine.
+    Value: !Ref MLLifecycleStateMachine
+  DataBucketName:
+    Description: S3 bucket for raw and feature data.
+    Value: !Ref MLDataBucket
+  ModelBucketName:
+    Description: S3 bucket for models and evaluations.
+    Value: !Ref MLModelBucket
+  EcsClusterName:
+    Description: ECS cluster hosting pipeline jobs and model serving.
+    Value: !Ref MLEcsCluster
+  ServingServiceName:
+    Description: ECS service name for model serving API.
+    Value: !Sub ${ProjectName}-${EnvironmentName}-serving

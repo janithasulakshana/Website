@@ -1,0 +1,123 @@
+name: ML Lifecycle on AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      use_case:
+        description: ML use case to run
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - demand_forecasting
+          - recommendation
+          - cancellation_prediction
+          - dynamic_pricing
+      environment:
+        description: Deployment environment
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+  PROJECT_NAME: website-ml
+  ECR_REPOSITORY: website-ml-runtime
+  STACK_NAME_PREFIX: website-ml-stack
+
+jobs:
+  deploy-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" --region "$AWS_REGION" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "$ECR_REPOSITORY" --region "$AWS_REGION"
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push ML runtime image
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          IMAGE_URI="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:${GITHUB_SHA::7}"
+          docker build -f mlops/container/Dockerfile.ml -t "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
+
+      - name: Deploy ML CloudFormation stack
+        run: |
+          STACK_NAME="$STACK_NAME_PREFIX-${{ github.event.inputs.environment }}"
+          PRIVATE_SUBNET_A="${{ secrets.AWS_PRIVATE_SUBNET_A }}"
+          PRIVATE_SUBNET_B="${{ secrets.AWS_PRIVATE_SUBNET_B }}"
+          if [ -z "$PRIVATE_SUBNET_A" ]; then PRIVATE_SUBNET_A="${{ secrets.AWS_PUBLIC_SUBNET_A }}"; fi
+          if [ -z "$PRIVATE_SUBNET_B" ]; then PRIVATE_SUBNET_B="${{ secrets.AWS_PUBLIC_SUBNET_B }}"; fi
+
+          aws cloudformation deploy \
+            --stack-name "$STACK_NAME" \
+            --template-file mlops/aws/ml-platform-cloudformation.yaml \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --region "$AWS_REGION" \
+            --parameter-overrides \
+              ProjectName="$PROJECT_NAME" \
+              EnvironmentName="${{ github.event.inputs.environment }}" \
+              VpcId="${{ secrets.AWS_VPC_ID }}" \
+              PrivateSubnetA="$PRIVATE_SUBNET_A" \
+              PrivateSubnetB="$PRIVATE_SUBNET_B" \
+              EcsSecurityGroupId="${{ secrets.AWS_ECS_SECURITY_GROUP_ID }}" \
+              PipelineImageUri="$IMAGE_URI"
+
+      - name: Fetch state machine ARN
+        id: state_machine
+        run: |
+          STACK_NAME="$STACK_NAME_PREFIX-${{ github.event.inputs.environment }}"
+          STATE_MACHINE_ARN=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='StateMachineArn'].OutputValue" \
+            --output text \
+            --region "$AWS_REGION")
+          echo "arn=$STATE_MACHINE_ARN" >> "$GITHUB_OUTPUT"
+
+      - name: Start Step Functions execution(s)
+        run: |
+          INPUT_USE_CASE="${{ github.event.inputs.use_case }}"
+          ARN="${{ steps.state_machine.outputs.arn }}"
+
+          run_execution() {
+            USE_CASE=$1
+            EXEC_NAME="${USE_CASE}-$(date +%s)-${GITHUB_RUN_NUMBER}"
+            aws stepfunctions start-execution \
+              --state-machine-arn "$ARN" \
+              --name "$EXEC_NAME" \
+              --input "{\"use_case\":\"$USE_CASE\"}" \
+              --region "$AWS_REGION"
+          }
+
+          if [ "$INPUT_USE_CASE" = "all" ]; then
+            run_execution demand_forecasting
+            run_execution recommendation
+            run_execution cancellation_prediction
+            run_execution dynamic_pricing
+          else
+            run_execution "$INPUT_USE_CASE"
+          fi

@@ -138,7 +138,7 @@ git push -u origin main
 ### Step 7: Install ArgoCD
 
 ```bash
-bash scripts/setup-argocd.sh
+bash scripts/setup-argocd.sh  
 ```
 
 Or manually:
