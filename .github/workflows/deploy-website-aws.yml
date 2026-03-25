@@ -1,0 +1,105 @@
+name: Deploy Website to AWS ECS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+  PROJECT_NAME: website
+  STACK_NAME_PREFIX: website-ecs
+  ECR_BACKEND_REPOSITORY: website-backend
+  ECR_FRONTEND_REPOSITORY: website-frontend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Ensure ECR repositories exist
+        run: |
+          aws ecr describe-repositories --repository-names "$ECR_BACKEND_REPOSITORY" --region "$AWS_REGION" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "$ECR_BACKEND_REPOSITORY" --region "$AWS_REGION"
+
+          aws ecr describe-repositories --repository-names "$ECR_FRONTEND_REPOSITORY" --region "$AWS_REGION" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "$ECR_FRONTEND_REPOSITORY" --region "$AWS_REGION"
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend image
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          BACKEND_IMAGE_URI="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_BACKEND_REPOSITORY:${GITHUB_SHA::7}"
+          docker build -f Dockerfile -t "$BACKEND_IMAGE_URI" .
+          docker push "$BACKEND_IMAGE_URI"
+          echo "BACKEND_IMAGE_URI=$BACKEND_IMAGE_URI" >> "$GITHUB_ENV"
+
+      - name: Build and push frontend image
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          FRONTEND_IMAGE_URI="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_FRONTEND_REPOSITORY:${GITHUB_SHA::7}"
+          docker build -f Dockerfile.frontend.prod \
+            --build-arg VITE_API_BASE_URL=/api \
+            -t "$FRONTEND_IMAGE_URI" .
+          docker push "$FRONTEND_IMAGE_URI"
+          echo "FRONTEND_IMAGE_URI=$FRONTEND_IMAGE_URI" >> "$GITHUB_ENV"
+
+      - name: Deploy CloudFormation stack
+        run: |
+          STACK_NAME="$STACK_NAME_PREFIX-${{ github.event.inputs.environment }}"
+          PRIVATE_SUBNET_A="${{ secrets.AWS_PRIVATE_SUBNET_A }}"
+          PRIVATE_SUBNET_B="${{ secrets.AWS_PRIVATE_SUBNET_B }}"
+          if [ -z "$PRIVATE_SUBNET_A" ]; then PRIVATE_SUBNET_A="${{ secrets.AWS_PUBLIC_SUBNET_A }}"; fi
+          if [ -z "$PRIVATE_SUBNET_B" ]; then PRIVATE_SUBNET_B="${{ secrets.AWS_PUBLIC_SUBNET_B }}"; fi
+
+          aws cloudformation deploy \
+            --stack-name "$STACK_NAME" \
+            --template-file infra/aws/website-ecs-cloudformation.yaml \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --region "$AWS_REGION" \
+            --parameter-overrides \
+              ProjectName="$PROJECT_NAME" \
+              EnvironmentName="${{ github.event.inputs.environment }}" \
+              VpcId="${{ secrets.AWS_VPC_ID }}" \
+              PublicSubnetA="${{ secrets.AWS_PUBLIC_SUBNET_A }}" \
+              PublicSubnetB="${{ secrets.AWS_PUBLIC_SUBNET_B }}" \
+              PrivateSubnetA="$PRIVATE_SUBNET_A" \
+              PrivateSubnetB="$PRIVATE_SUBNET_B" \
+              FrontendImageUri="$FRONTEND_IMAGE_URI" \
+              BackendImageUri="$BACKEND_IMAGE_URI" \
+              JwtSecret="${{ secrets.JWT_SECRET }}" \
+              CorsOrigin="*"
+
+      - name: Show website URL
+        run: |
+          STACK_NAME="$STACK_NAME_PREFIX-${{ github.event.inputs.environment }}"
+          WEBSITE_URL=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='WebsiteUrl'].OutputValue" \
+            --output text \
+            --region "$AWS_REGION")
+          echo "Website URL: $WEBSITE_URL"

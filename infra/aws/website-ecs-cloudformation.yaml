@@ -1,0 +1,293 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Public website hosting on AWS ECS Fargate with ALB, frontend, and backend services.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: website
+  EnvironmentName:
+    Type: String
+    Default: dev
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet::Id
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet::Id
+    Description: Workload subnet A (use a public subnet if private subnets are not available)
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet::Id
+    Description: Workload subnet B (use a public subnet if private subnets are not available)
+  FrontendImageUri:
+    Type: String
+  BackendImageUri:
+    Type: String
+  JwtSecret:
+    Type: String
+    NoEcho: true
+    MinLength: 12
+  CorsOrigin:
+    Type: String
+    Default: "*"
+  FrontendDesiredCount:
+    Type: Number
+    Default: 1
+    MinValue: 1
+  BackendDesiredCount:
+    Type: Number
+    Default: 1
+    MinValue: 1
+  ServiceAssignPublicIp:
+    Type: String
+    Default: ENABLED
+    AllowedValues:
+      - ENABLED
+      - DISABLED
+
+Resources:
+  WebsiteCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub ${ProjectName}-${EnvironmentName}-cluster
+
+  FrontendLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${ProjectName}/${EnvironmentName}/frontend
+      RetentionInDays: 30
+
+  BackendLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${ProjectName}/${EnvironmentName}/backend
+      RetentionInDays: 30
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  ApplicationLoadBalancerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ALB security group for website
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Service security group for frontend and backend
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ApplicationLoadBalancerSG
+        - IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 5000
+          SourceSecurityGroupId: !Ref ApplicationLoadBalancerSG
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  WebsiteALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${ProjectName}-${EnvironmentName}-alb
+      Scheme: internet-facing
+      Type: application
+      SecurityGroups:
+        - !Ref ApplicationLoadBalancerSG
+      Subnets:
+        - !Ref PublicSubnetA
+        - !Ref PublicSubnetB
+
+  FrontendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${ProjectName}-${EnvironmentName}-fe
+      VpcId: !Ref VpcId
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      HealthCheckPath: /
+      Matcher:
+        HttpCode: '200-399'
+
+  BackendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${ProjectName}-${EnvironmentName}-be
+      VpcId: !Ref VpcId
+      Port: 5000
+      Protocol: HTTP
+      TargetType: ip
+      HealthCheckPath: /health
+      Matcher:
+        HttpCode: '200-399'
+
+  HttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref WebsiteALB
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref FrontendTargetGroup
+
+  ApiListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref HttpListener
+      Priority: 10
+      Conditions:
+        - Field: path-pattern
+          PathPatternConfig:
+            Values:
+              - /api/*
+              - /health
+              - /metrics
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref BackendTargetGroup
+
+  BackendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${ProjectName}-${EnvironmentName}-backend
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: '512'
+      Memory: '1024'
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: backend
+          Image: !Ref BackendImageUri
+          Essential: true
+          PortMappings:
+            - ContainerPort: 5000
+              Protocol: tcp
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+            - Name: PORT
+              Value: '5000'
+            - Name: HOST
+              Value: 0.0.0.0
+            - Name: JWT_SECRET
+              Value: !Ref JwtSecret
+            - Name: CORS_ORIGIN
+              Value: !Ref CorsOrigin
+            - Name: DATABASE_PATH
+              Value: /tmp/bookings.db
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref BackendLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: backend
+
+  FrontendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${ProjectName}-${EnvironmentName}-frontend
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: '512'
+      Memory: '1024'
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: frontend
+          Image: !Ref FrontendImageUri
+          Essential: true
+          PortMappings:
+            - ContainerPort: 80
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref FrontendLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: frontend
+
+  BackendService:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - ApiListenerRule
+    Properties:
+      ServiceName: !Sub ${ProjectName}-${EnvironmentName}-backend
+      Cluster: !Ref WebsiteCluster
+      LaunchType: FARGATE
+      DesiredCount: !Ref BackendDesiredCount
+      TaskDefinition: !Ref BackendTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: !Ref ServiceAssignPublicIp
+          SecurityGroups:
+            - !Ref ServiceSecurityGroup
+          Subnets:
+            - !Ref PrivateSubnetA
+            - !Ref PrivateSubnetB
+      LoadBalancers:
+        - ContainerName: backend
+          ContainerPort: 5000
+          TargetGroupArn: !Ref BackendTargetGroup
+
+  FrontendService:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - HttpListener
+    Properties:
+      ServiceName: !Sub ${ProjectName}-${EnvironmentName}-frontend
+      Cluster: !Ref WebsiteCluster
+      LaunchType: FARGATE
+      DesiredCount: !Ref FrontendDesiredCount
+      TaskDefinition: !Ref FrontendTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: !Ref ServiceAssignPublicIp
+          SecurityGroups:
+            - !Ref ServiceSecurityGroup
+          Subnets:
+            - !Ref PrivateSubnetA
+            - !Ref PrivateSubnetB
+      LoadBalancers:
+        - ContainerName: frontend
+          ContainerPort: 80
+          TargetGroupArn: !Ref FrontendTargetGroup
+
+Outputs:
+  WebsiteUrl:
+    Description: Website entrypoint URL
+    Value: !Sub http://${WebsiteALB.DNSName}
+  ApiBaseUrl:
+    Description: API base URL through ALB routing
+    Value: !Sub http://${WebsiteALB.DNSName}/api
+  ClusterName:
+    Value: !Ref WebsiteCluster
+  FrontendServiceName:
+    Value: !Sub ${ProjectName}-${EnvironmentName}-frontend
+  BackendServiceName:
+    Value: !Sub ${ProjectName}-${EnvironmentName}-backend

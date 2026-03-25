@@ -13,6 +13,7 @@ env:
 jobs:
   terraform-plan:
     name: Terraform Format, Validate, Plan
+    if: vars.ENABLE_AZURE == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
