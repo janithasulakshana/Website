@@ -379,12 +379,6 @@ Resources:
     Properties:
       StateMachineName: !Sub ${ProjectName}-${EnvironmentName}-ml-lifecycle
       RoleArn: !GetAtt MLStepFunctionsRole.Arn
-      LoggingConfiguration:
-        Destinations:
-          - CloudWatchLogsLogGroup:
-              LogGroupArn: !GetAtt MLStateMachineLogGroup.Arn
-        IncludeExecutionData: true
-        Level: ALL
       DefinitionString: !Sub |
         {
           "Comment": "ML lifecycle orchestrator for all learning use cases",
