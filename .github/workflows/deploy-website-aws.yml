@@ -54,7 +54,7 @@ jobs:
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           BACKEND_IMAGE_URI="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_BACKEND_REPOSITORY:${GITHUB_SHA::7}"
-          docker build -f Dockerfile -t "$BACKEND_IMAGE_URI" .
+          docker build -f Dockerfile.backend -t "$BACKEND_IMAGE_URI" .
           docker push "$BACKEND_IMAGE_URI"
           echo "BACKEND_IMAGE_URI=$BACKEND_IMAGE_URI" >> "$GITHUB_ENV"
 
@@ -93,6 +93,16 @@ jobs:
               BackendImageUri="$BACKEND_IMAGE_URI" \
               JwtSecret="${{ secrets.JWT_SECRET }}" \
               CorsOrigin="*"
+
+      - name: Show stack failure reason
+        if: failure()
+        run: |
+          STACK_NAME="$STACK_NAME_PREFIX-${{ github.event.inputs.environment }}"
+          aws cloudformation describe-stack-events \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --query "StackEvents[?contains(ResourceStatus, 'FAILED') || contains(ResourceStatus, 'ROLLBACK')].[Timestamp,LogicalResourceId,ResourceType,ResourceStatus,ResourceStatusReason]" \
+            --output table
 
       - name: Show website URL
         run: |
