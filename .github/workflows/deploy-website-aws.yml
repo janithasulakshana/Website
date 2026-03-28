@@ -96,6 +96,13 @@ jobs:
 
       - name: Show stack failure reason
         if: failure()
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Show stack failure events
+        if: failure()
         run: |
           STACK_NAME="$STACK_NAME_PREFIX-${{ github.event.inputs.environment }}"
           aws cloudformation describe-stack-events \
