@@ -241,6 +241,7 @@ Resources:
       Cluster: !Ref WebsiteCluster
       LaunchType: FARGATE
       DesiredCount: !Ref BackendDesiredCount
+      HealthCheckGracePeriodSeconds: 180
       TaskDefinition: !Ref BackendTaskDefinition
       NetworkConfiguration:
         AwsvpcConfiguration:
@@ -264,6 +265,7 @@ Resources:
       Cluster: !Ref WebsiteCluster
       LaunchType: FARGATE
       DesiredCount: !Ref FrontendDesiredCount
+      HealthCheckGracePeriodSeconds: 120
       TaskDefinition: !Ref FrontendTaskDefinition
       NetworkConfiguration:
         AwsvpcConfiguration:
