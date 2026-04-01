@@ -1,7 +1,16 @@
+# Build stage: Install deps with build tools
+FROM node:20-alpine AS builder
+WORKDIR /app
+RUN apk add --no-cache python3 make g++
+COPY backend/package*.json ./
+RUN npm ci --production
+RUN npm rebuild
+
+# Runtime stage: Minimal production image
 FROM node:20-alpine
 WORKDIR /app
-COPY backend/package*.json ./
-RUN npm install --production
+RUN apk add --no-cache dumb-init
+COPY --from=builder /app/node_modules ./node_modules
 COPY backend/ ./
 EXPOSE 5000
-CMD ["node", "server.js"]
+CMD ["dumb-init", "node", "server.js"]
