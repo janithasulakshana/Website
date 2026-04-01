@@ -177,6 +177,9 @@ Resources:
       Family: !Sub ${ProjectName}-${EnvironmentName}-backend
       RequiresCompatibilities:
         - FARGATE
+      RuntimePlatform:
+        CpuArchitecture: X86_64
+        OperatingSystemFamily: LINUX
       NetworkMode: awsvpc
       Cpu: '512'
       Memory: '1024'

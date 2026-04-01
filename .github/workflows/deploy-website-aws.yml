@@ -54,7 +54,7 @@ jobs:
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           BACKEND_IMAGE_URI="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_BACKEND_REPOSITORY:${GITHUB_SHA::7}"
-          docker build -f Dockerfile.backend -t "$BACKEND_IMAGE_URI" .
+          docker build --platform linux/amd64 -f Dockerfile.backend -t "$BACKEND_IMAGE_URI" .
           docker push "$BACKEND_IMAGE_URI"
           echo "BACKEND_IMAGE_URI=$BACKEND_IMAGE_URI" >> "$GITHUB_ENV"
 
@@ -62,7 +62,7 @@ jobs:
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           FRONTEND_IMAGE_URI="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_FRONTEND_REPOSITORY:${GITHUB_SHA::7}"
-          docker build -f Dockerfile.frontend.prod \
+          docker build --platform linux/amd64 -f Dockerfile.frontend.prod \
             --build-arg VITE_API_BASE_URL=/api \
             -t "$FRONTEND_IMAGE_URI" .
           docker push "$FRONTEND_IMAGE_URI"
