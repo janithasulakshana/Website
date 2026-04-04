@@ -212,7 +212,33 @@ For Azure DevOps pipeline, use managed service connection and `AzureCLI@2`:
 - For persistent storage, download keys or use existing ones
 - Command: `az aks create --generate-ssh-keys` creates `id_rsa` and `id_rsa.pub`
 
+### Docker Permission Denied on Self-Hosted Windows Agent
+- **Error**: `permission denied while trying to connect to the docker API at npipe:////./pipe/docker_engine`
+- **Cause**: Docker daemon is running, but the Azure DevOps agent service account lacks access
+  - Docker Desktop runs under the logged-in user's context
+  - Azure DevOps agent runs as different user (e.g., LocalSystem, NetworkService, or service account)
+  - Service account can't access Docker pipes
+- **Solutions** (pick one):
+  1. **Run agent under Docker user** (simplest):
+     - Stop the Azure DevOps agent: `net stop vstsagent.<org>.<pool>.<agent>`
+     - In Services (`services.msc`), find agent → Properties → Log On tab → set to user running Docker Desktop
+     - Restart agent: `net start vstsagent.<org>.<pool>.<agent>`
+  2. **Add agent account to docker-users group**:
+     ```powershell
+     net localgroup docker-users <AgentServiceAccount> /add
+     # Restart agent after this
+     ```
+  3. **Run Docker and agent as same user**:
+     - Ensure Docker Desktop auto-starts with signed-in user
+     - Run agent under that same user account
+- **Verify fix**: In pipeline, `docker ps` should succeed
+
 ### Interview Notes on Azure Limits
 - Resource quotas prevent runaway costs in shared environments
 - Provider registration ensures feature availability
 - Managed identity reduces credential management overhead
+
+### Interview Notes on CI/CD Agent Selection
+- Microsoft-hosted agents: simpler for standard workloads, Docker/Kubernetes tools pre-installed
+- Self-hosted agents: needed for private networks, custom tools, but require manual setup
+- For Docker builds: prefer Ubuntu vmImage or ensure Docker Desktop runs on Windows agents
