@@ -1,0 +1,140 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Azure DevOps Self-Hosted Agent — runs as pods inside AKS
+#
+# SETUP (one-time, before applying this manifest):
+#
+#   1. Create an agent pool in Azure DevOps
+#      Org Settings → Agent pools → Add pool → Self-hosted → Name: aks-agents
+#
+#   2. Create a Personal Access Token (PAT) at dev.azure.com
+#      User settings → Personal access tokens
+#      Scope: Agent Pools (Read & manage)
+#
+#   3. Create the namespace + secret in your cluster
+#      kubectl create namespace azp-agents
+#
+#      kubectl create secret generic azp-secret \
+#        --namespace azp-agents \
+#        --from-literal=AZP_URL=https://dev.azure.com/kwshalonifonseka \
+#        --from-literal=AZP_TOKEN=<your-pat>
+#
+#   4. Apply this manifest
+#      kubectl apply -f azure-devops-agent.yaml
+#
+#   5. Verify agents appear in: Azure DevOps → Org Settings → Agent pools → aks-agents
+#
+# DOCKER BUILDS:
+#   A Docker-in-Docker (dind) sidecar runs alongside the agent so that
+#   `docker build` and `docker push` work inside the pod without needing
+#   access to the host node's Docker socket.
+#   The agent connects to dind via DOCKER_HOST=tcp://localhost:2375.
+# ─────────────────────────────────────────────────────────────────────────────
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: azp-agents
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: azp-agent
+  namespace: azp-agents
+  labels:
+    app: azp-agent
+spec:
+  replicas: 2            # 2 agents = 2 parallel pipeline jobs; scale as needed
+  selector:
+    matchLabels:
+      app: azp-agent
+  template:
+    metadata:
+      labels:
+        app: azp-agent
+    spec:
+      terminationGracePeriodSeconds: 120   # grace period for running jobs to finish
+
+      containers:
+        # ── Azure Pipelines Agent ─────────────────────────────────────────────
+        - name: agent
+          image: mcr.microsoft.com/azure-pipelines/vsts-agent:ubuntu-22.04
+          env:
+            - name: AZP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: azp-secret
+                  key: AZP_URL
+            - name: AZP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: azp-secret
+                  key: AZP_TOKEN
+            - name: AZP_POOL
+              value: "aks-agents"          # must match the pool name in Azure DevOps
+            - name: AZP_AGENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name # pod name used as unique agent name
+            - name: DOCKER_HOST
+              value: tcp://localhost:2375  # route docker commands to dind sidecar
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+          volumeMounts:
+            - name: workspace
+              mountPath: /azp/_work        # pipeline working directory
+
+        # ── Docker-in-Docker sidecar ──────────────────────────────────────────
+        - name: dind
+          image: docker:27-dind
+          securityContext:
+            privileged: true               # required for dind
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""                    # disable TLS — pod-internal traffic only
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+          volumeMounts:
+            - name: dind-storage
+              mountPath: /var/lib/docker   # Docker layer cache
+            - name: workspace
+              mountPath: /azp/_work        # shared build context with agent
+
+      volumes:
+        - name: dind-storage
+          emptyDir: {}                     # layer cache lost on pod restart (acceptable)
+        - name: workspace
+          emptyDir: {}                     # shared between agent and dind containers
+
+---
+# Optional: HorizontalPodAutoscaler — scale agents based on CPU load
+# Remove if you prefer fixed replica count
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: azp-agent-hpa
+  namespace: azp-agents
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: azp-agent
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

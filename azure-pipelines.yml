@@ -9,7 +9,7 @@ pr:
       - main
 
 pool:
-  vmImage: ubuntu-latest
+  name: aks-agents    # self-hosted agents running as AKS pods (see azure-devops-agent.yaml)
 
 variables:
   dockerRegistryServiceConnection: dockerhub-service-connection
@@ -18,36 +18,160 @@ variables:
   backendImageRepository: janithasulakshana/website-backend
   frontendImageRepository: janithasulakshana/website-frontend
   tag: $(Build.BuildId)
+  # SonarCloud — set these in Azure DevOps Library (Pipeline variables)
+  sonarOrganization: your-sonarcloud-org       # e.g. janitha-fonseka
+  sonarProjectKey: website                      # matches sonar-project.properties
 
 stages:
+  # ─── Stage 1: Code Quality (SonarCloud) ──────────────────────────────────────
+  - stage: CodeQuality
+    displayName: Code Quality — SonarCloud
+    jobs:
+      - job: SonarScan
+        displayName: SonarCloud analysis
+        steps:
+          - checkout: self
+            fetchDepth: 0  # Required for SonarCloud blame info
+
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+
+          - script: |
+              cd backend && npm ci
+            displayName: Install backend dependencies
+
+          - task: SonarCloudPrepare@2
+            displayName: Prepare SonarCloud analysis
+            inputs:
+              SonarCloud: SonarCloud-ServiceConnection   # Service connection name in Azure DevOps
+              organization: $(sonarOrganization)
+              scannerMode: CLI
+              configMode: manual
+              cliProjectKey: $(sonarProjectKey)
+              cliProjectName: website
+              cliSources: backend,frontend
+              extraProperties: |
+                sonar.exclusions=**/node_modules/**,**/dist/**,**/*.test.js
+                sonar.javascript.lcov.reportPaths=coverage/lcov.info
+
+          - script: |
+              cd backend && npm test -- --coverage --coverageReporters=lcov 2>/dev/null || true
+            displayName: Run tests with coverage
+
+          - task: SonarCloudAnalyze@2
+            displayName: Run SonarCloud analysis
+
+          - task: SonarCloudPublish@2
+            displayName: Publish quality gate result
+            inputs:
+              pollingTimeoutSec: '300'
+
+  # ─── Stage 2: Build & Security Scan (Trivy) ──────────────────────────────────
   - stage: Build
-    displayName: Build and Push Images
+    displayName: Build, Scan and Push Images
+    dependsOn: CodeQuality
+    condition: succeeded()
     jobs:
       - job: BuildAndPush
         displayName: Build and push Docker images
         steps:
           - checkout: self
 
+          # Build backend image (local, not pushed yet — scan first)
           - task: Docker@2
-            displayName: Build and push backend image
+            displayName: Build backend image
             inputs:
-              command: buildAndPush
+              command: build
               containerRegistry: $(dockerRegistryServiceConnection)
               repository: $(backendImageRepository)
-              dockerfile: Dockerfile
+              dockerfile: Dockerfile.backend
               buildContext: .
               tags: |
                 $(tag)
                 latest
 
+          # Build frontend image
           - task: Docker@2
-            displayName: Build and push frontend image
+            displayName: Build frontend image
             inputs:
-              command: buildAndPush
+              command: build
               containerRegistry: $(dockerRegistryServiceConnection)
               repository: $(frontendImageRepository)
               dockerfile: Dockerfile.frontend
               buildContext: .
+              tags: |
+                $(tag)
+                latest
+
+          # Install Trivy
+          - script: |
+              curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+              trivy --version
+            displayName: Install Trivy
+
+          # Scan backend image — fail on CRITICAL vulnerabilities
+          - script: |
+              trivy image \
+                --exit-code 1 \
+                --severity CRITICAL \
+                --no-progress \
+                --format table \
+                $(backendImageRepository):$(tag)
+            displayName: Trivy scan — backend image (CRITICAL gate)
+            continueOnError: false
+
+          # Scan frontend image
+          - script: |
+              trivy image \
+                --exit-code 1 \
+                --severity CRITICAL \
+                --no-progress \
+                --format table \
+                $(frontendImageRepository):$(tag)
+            displayName: Trivy scan — frontend image (CRITICAL gate)
+            continueOnError: false
+
+          # Scan Kubernetes manifests for misconfigurations
+          - script: |
+              trivy config \
+                --exit-code 0 \
+                --severity HIGH,CRITICAL \
+                --format table \
+                .
+            displayName: Trivy scan — Kubernetes/Dockerfile misconfigs
+
+          # Publish Trivy SARIF report as pipeline artifact
+          - script: |
+              trivy image \
+                --format sarif \
+                --output trivy-backend.sarif \
+                $(backendImageRepository):$(tag)
+            displayName: Generate Trivy SARIF report
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Trivy report
+            inputs:
+              pathToPublish: trivy-backend.sarif
+              artifactName: trivy-security-report
+
+          # Push images only after scans pass
+          - task: Docker@2
+            displayName: Push backend image
+            inputs:
+              command: push
+              containerRegistry: $(dockerRegistryServiceConnection)
+              repository: $(backendImageRepository)
+              tags: |
+                $(tag)
+                latest
+
+          - task: Docker@2
+            displayName: Push frontend image
+            inputs:
+              command: push
+              containerRegistry: $(dockerRegistryServiceConnection)
+              repository: $(frontendImageRepository)
               tags: |
                 $(tag)
                 latest

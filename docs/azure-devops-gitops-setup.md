@@ -44,17 +44,178 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 
 ## 3. Azure DevOps project setup
 
-1. Create Azure DevOps project.
+1. Create Azure DevOps project at https://dev.azure.com
 2. Create service connections:
    - Azure Resource Manager (ARM) using `Automatic` or `Service principal (manual)`.
    - Docker registry for ACR.
 3. Add repository branches and branch policies for `main`, `develop`.
 
+## 3.5 Deployment Commands (Quick Start)
+
+Run these commands in order to deploy the entire stack:
+
+```bash
+# 1. Set variables
+export RESOURCE_GROUP="my-rg"
+export REGION="eastus2"
+export ACR_NAME="myacrname"
+export AKS_NAME="my-aks"
+export SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
+# 2. Create resource group
+az group create -n $RESOURCE_GROUP -l $REGION
+
+# 3. Register providers
+az provider register --namespace Microsoft.ContainerService --wait
+az provider register --namespace Microsoft.Compute --wait
+
+# 4. Create ACR
+az acr create -n $ACR_NAME -g $RESOURCE_GROUP --sku Standard
+
+# 5. Create AKS (single node to avoid quota issues)
+az aks create -n $AKS_NAME -g $RESOURCE_GROUP --node-count 1 \
+  --enable-managed-identity --generate-ssh-keys
+
+# 6. Attach ACR to AKS
+az aks update -n $AKS_NAME -g $RESOURCE_GROUP --attach-acr $ACR_NAME
+
+# 7. Get AKS credentials
+az aks get-credentials -n $AKS_NAME -g $RESOURCE_GROUP --overwrite-existing
+
+# 8. Install ArgoCD
+kubectl create ns argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# 9. Wait for ArgoCD to be ready
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
+
+# 10. Get ArgoCD password
+ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+echo "ArgoCD password: $ARGOCD_PASSWORD"
+
+# 11. Port forward to ArgoCD (run in separate terminal)
+# kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+# 12. Login to ArgoCD
+# argocd login localhost:8080 --insecure --username admin --password $ARGOCD_PASSWORD
+
+# 13. Create ArgoCD application from repo
+kubectl apply -f argocd-application.yaml
+
+# 14. Verify deployment
+kubectl get ns
+kubectl get pods -n argocd
+argocd app get website  # if ArgoCD CLI configured
+```
+
+**For Azure DevOps pipeline deployment:**
+1. Push `azure-pipelines-ci.yml` and `azure-pipelines-cd.yml` to repo root
+2. In Azure DevOps UI: Create → New Pipeline → Select repo
+3. Configure service connections (ARM, ACR) in Project Settings
+4. Run the pipeline manually first
+
+## 3.7 Deploy Frontend & Backend Services
+
+After AKS and ArgoCD are ready, deploy your services using the existing manifests:
+
+```bash
+# Option A: Direct kubectl apply (manual deployment)
+kubectl apply -f deployment-backend.yaml
+kubectl apply -f deployment-frontend.yaml
+kubectl apply -f backend-service.yaml
+kubectl apply -f frontend-service.yaml
+
+# Verify deployments
+kubectl get deployments
+kubectl get pods
+kubectl get svc
+
+# Option B: Using ArgoCD (GitOps preferred)
+# First, ensure your git repo has the manifests in /manifests folder
+# Update your argocd-application.yaml to point to the repo path
+kubectl apply -f argocd-application.yaml
+
+# Check ArgoCD sync status
+argocd app list
+argocd app sync website  # if using ArgoCD CLI
+
+# Watch deployment progress
+kubectl get pods -A -w
+
+# Option C: Port-forward to test services
+kubectl port-forward svc/frontend-service 3000:80 &
+kubectl port-forward svc/backend-service 5000:5000 &
+
+# Then open browser to:
+# Frontend: http://localhost:3000
+# Backend: http://localhost:5000/health
+
+# View logs
+kubectl logs -f deployment/website-backend
+kubectl logs -f deployment/website-frontend
+
+# Scale services if needed
+kubectl scale deployment/website-backend --replicas 3
+kubectl scale deployment/website-frontend --replicas 2
+```
+
+**Recommended workflow:**
+1. Commit manifests to `main` branch in repo
+2. Create ArgoCD application pointing to repo
+3. Push to trigger CI/CD pipeline
+4. Pipeline updates image tags in manifests
+5. ArgoCD detects changes and syncs automatically
+
 ## 4. Pipeline files
 
 ### 4.1 CI pipeline: `azure-pipelines-ci.yml`
 
-Use this as base:
+#### Option A: Using pre-built images from Docker Hub (simplest, avoids Docker daemon issues)
+```yaml
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  ACR_NAME: myacrname
+  IMAGE_BACKEND: $(ACR_NAME).azurecr.io/website-backend
+  IMAGE_FRONTEND: $(ACR_NAME).azurecr.io/website-frontend
+
+stages:
+- stage: Import
+  jobs:
+  - job: PullAndPush
+    steps:
+    - checkout: self
+
+    - task: Docker@2
+      displayName: Pull and push backend image to ACR
+      inputs:
+        command: buildAndPush
+        Dockerfile: 'Dockerfile'
+        repository: $(IMAGE_BACKEND)
+        tags: |
+          $(Build.BuildId)
+          latest
+        containerRegistry: ACR-ServiceConnection
+
+    - task: AzureCLI@2
+      displayName: Verify image in ACR
+      inputs:
+        azureSubscription: 'AzureRM-Connection'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az acr repository list -n $(ACR_NAME)
+          az acr repository show-tags -n $(ACR_NAME) --repository website-backend
+```
+
+#### Option B: Build from Dockerfile (requires Docker daemon, or use Microsoft-hosted agent)
 ```yaml
 trigger:
   branches:
@@ -112,10 +273,9 @@ stages:
           $(Build.BuildId)
           latest
         containerRegistry: ACR-ServiceConnection
-
-    - publish: $(Pipeline.Workspace)
-      artifact: imageinfo
 ```
+
+**Recommendation**: Use **Option A** with pre-built images—avoids all Docker daemon permission issues.
 
 ### 4.2 CD pipeline: `azure-pipelines-cd.yml`
 
@@ -238,7 +398,60 @@ For Azure DevOps pipeline, use managed service connection and `AzureCLI@2`:
 - Provider registration ensures feature availability
 - Managed identity reduces credential management overhead
 
-### Interview Notes on CI/CD Agent Selection
-- Microsoft-hosted agents: simpler for standard workloads, Docker/Kubernetes tools pre-installed
-- Self-hosted agents: needed for private networks, custom tools, but require manual setup
-- For Docker builds: prefer Ubuntu vmImage or ensure Docker Desktop runs on Windows agents
+### Backend Pod Running Nginx Instead of Node.js
+- **Issue**: Pod logs show nginx starting, but backend should be Node.js app on port 5000
+- **Root Cause**: ArgoCD Image Updater is pulling `janithasulakshana/website-backend:1.0.0` which is nginx image, not your Node.js backend
+
+#### Option 1: Fix by building correct Node.js image (Recommended)
+```bash
+# Build the correct backend image from your Dockerfile.backend
+docker build -f Dockerfile.backend -t janithasulakshana/website-backend:1.0.0 .
+docker login
+docker push janithasulakshana/website-backend:1.0.0
+```
+
+#### Option 2: Proceed with nginx (if you want API served by nginx)
+If you want to use nginx to serve your API instead of Node.js:
+
+1. **Update nginx config** to serve your API endpoints:
+```nginx
+# nginx.conf for API serving
+server {
+    listen 5000;
+    location /api/ {
+        # Proxy to your actual backend or serve static API responses
+        proxy_pass http://your-backend-service;
+        # Or serve static JSON for /api/test
+        location = /api/test {
+            return 200 '{"status":"ok"}';
+            add_header Content-Type application/json;
+        }
+    }
+}
+```
+
+2. **Update Dockerfile** to use nginx with your config:
+```dockerfile
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 5000
+```
+
+3. **Rebuild and push**:
+```bash
+docker build -f Dockerfile.backend -t janithasulakshana/website-backend:1.0.0 .
+docker push janithasulakshana/website-backend:1.0.0
+```
+
+#### Option 3: Disable ArgoCD Image Updater temporarily
+```bash
+# Remove image updater annotations
+kubectl annotate deployment/website-backend argocd-image-updater.argoproj.io/image-list-
+kubectl annotate deployment/website-backend argocd-image-updater.argoproj.io/website-backend.image-spec-
+kubectl annotate deployment/website-backend argocd-image-updater.argoproj.io/website-backend.update-strategy-
+
+# Then manually update the image in deployment
+kubectl set image deployment/website-backend backend=janithasulakshana/website-backend:correct-tag
+```
+
+**Current issue**: Liveness probe fails because nginx serves on port 80, but probes expect port 5000 `/api/test`.
