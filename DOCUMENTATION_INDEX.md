@@ -39,6 +39,16 @@ Perfect for Argo CD installation, image automation, and operations
    - Post-release verification
    - Rollback checks
 
+### AWS ECS Deployment ☁️
+Perfect for deploying this project on AWS with ECS, ECR, CloudFormation, and Secrets Manager
+
+1. **[AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md](AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md)**
+   - End-to-end AWS deployment steps
+   - ECR image build and push
+   - CloudFormation stack deployment
+   - Secrets Manager integration
+   - ECS validation and troubleshooting
+
 ### Level 1: Overview & Quick Start ⭐
 Perfect if you just want to run the project
 
@@ -158,10 +168,11 @@ Perfect for understanding the complete picture
 
 ### 🚀 "I Want to Deploy It"
 1. Read: [README.md](README.md) (5 min)
-2. Follow: [SETUP_GUIDE.md](SETUP_GUIDE.md) (10 min)
-3. Review: Deployment section in [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) (15 min)
-4. Check: [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) (5 min)
-5. Deploy following project docs
+2. Read: [AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md](AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md) (15 min)
+3. Follow: [SETUP_GUIDE.md](SETUP_GUIDE.md) (10 min)
+4. Review: Deployment section in [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) (15 min)
+5. Check: [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) (5 min)
+6. Deploy following project docs
 
 **Time Needed**: 35+ minutes (plus deployment)
 
@@ -188,6 +199,7 @@ Perfect for understanding the complete picture
 | [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) | Full reference | 20 min | Developers |
 | [API_TESTING.md](API_TESTING.md) | API examples | 10 min | Developers |
 | [ENHANCEMENTS_SUMMARY.md](ENHANCEMENTS_SUMMARY.md) | Changes made | 8 min | Project reviewers |
+| [AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md](AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md) | AWS deployment and secrets flow | 15 min | DevOps/Cloud users |
 | [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) | Verification | 5 min | QA/Testers |
 | [COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md) | Status overview | 5 min | Project managers |
 | [PROJECT_COMPLETE.md](PROJECT_COMPLETE.md) | Executive summary | 10 min | Everyone |
@@ -224,6 +236,9 @@ Perfect for understanding the complete picture
 
 **Deployment**
 → [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) → Deployment section
+
+**AWS Deployment**
+→ [AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md](AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md)
 
 **Argo CD Deployment / GitOps**
 → [ARGOCD_DEPLOYMENT_COMPREHENSIVE_GUIDE.md](ARGOCD_DEPLOYMENT_COMPREHENSIVE_GUIDE.md)

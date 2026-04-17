@@ -12,6 +12,7 @@ Welcome to Lets Go Colombo Tours by J! This is a complete city tour booking plat
 - **[PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md)** - Full technical documentation
 - **[ENHANCEMENTS_SUMMARY.md](ENHANCEMENTS_SUMMARY.md)** - All improvements made
 - **[API_TESTING.md](API_TESTING.md)** - API endpoint testing guide
+- **[AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md](AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md)** - AWS ECS, ECR, CloudFormation, and Secrets Manager deployment guide
 
 ---
 
@@ -208,6 +209,10 @@ See [ENHANCEMENTS_SUMMARY.md](ENHANCEMENTS_SUMMARY.md) for details.
 
 ## 🚀 Deployment
 
+For the AWS deployment path with ECS Fargate, ECR, CloudFormation, and Secrets Manager, use:
+
+- **[AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md](AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md)**
+
 ### Frontend Build
 ```bash
 cd frontend
@@ -275,6 +280,7 @@ See [SETUP_GUIDE.md](SETUP_GUIDE.md) for more solutions.
 | [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) | Full technical docs |
 | [API_TESTING.md](API_TESTING.md) | API endpoint testing |
 | [ENHANCEMENTS_SUMMARY.md](ENHANCEMENTS_SUMMARY.md) | What's been improved |
+| [AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md](AWS_ECS_SECRETS_MANAGER_DEPLOYMENT_GUIDE.md) | AWS deployment with ECS, CloudFormation, and Secrets Manager |
 
 ---
 

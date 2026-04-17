@@ -24,10 +24,9 @@ Parameters:
     Type: String
   BackendImageUri:
     Type: String
-  JwtSecret:
+  JwtSecretArn:
     Type: String
-    NoEcho: true
-    MinLength: 12
+    Description: ARN of the AWS Secrets Manager secret containing the JWT secret value
   CorsOrigin:
     Type: String
     Default: "*"
@@ -76,6 +75,15 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: ReadJwtSecret
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref JwtSecretArn
 
   ApplicationLoadBalancerSG:
     Type: AWS::EC2::SecurityGroup
@@ -198,12 +206,13 @@ Resources:
               Value: '5000'
             - Name: HOST
               Value: 0.0.0.0
-            - Name: JWT_SECRET
-              Value: !Ref JwtSecret
             - Name: CORS_ORIGIN
               Value: !Ref CorsOrigin
             - Name: DATABASE_PATH
               Value: /tmp/bookings.db
+          Secrets:
+            - Name: JWT_SECRET
+              ValueFrom: !Ref JwtSecretArn
           LogConfiguration:
             LogDriver: awslogs
             Options:
