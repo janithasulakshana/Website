@@ -53,12 +53,16 @@ Resources:
 
   FrontendLogGroup:
     Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       LogGroupName: !Sub /ecs/${ProjectName}/${EnvironmentName}/frontend
       RetentionInDays: 30
 
   BackendLogGroup:
     Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       LogGroupName: !Sub /ecs/${ProjectName}/${EnvironmentName}/backend
       RetentionInDays: 30
@@ -84,6 +88,10 @@ Resources:
                 Action:
                   - secretsmanager:GetSecretValue
                 Resource: !Ref JwtSecretArn
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/ecs/${ProjectName}/${EnvironmentName}/*
 
   ApplicationLoadBalancerSG:
     Type: AWS::EC2::SecurityGroup
@@ -216,6 +224,7 @@ Resources:
           LogConfiguration:
             LogDriver: awslogs
             Options:
+              awslogs-create-group: 'true'
               awslogs-group: !Ref BackendLogGroup
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: backend
@@ -240,6 +249,7 @@ Resources:
           LogConfiguration:
             LogDriver: awslogs
             Options:
+              awslogs-create-group: 'true'
               awslogs-group: !Ref FrontendLogGroup
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: frontend

@@ -190,8 +190,8 @@ Authenticates Docker so it can push images into Amazon ECR.
 
 ```powershell
 $GIT_SHA = (git rev-parse --short HEAD).Trim()
-$BACKEND_IMAGE_URI = "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_BACKEND_REPOSITORY:$GIT_SHA"
-$FRONTEND_IMAGE_URI = "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_FRONTEND_REPOSITORY:$GIT_SHA"
+$BACKEND_IMAGE_URI = "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${ECR_BACKEND_REPOSITORY}:$GIT_SHA"
+$FRONTEND_IMAGE_URI = "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${ECR_FRONTEND_REPOSITORY}:$GIT_SHA"
 
 $BACKEND_IMAGE_URI
 $FRONTEND_IMAGE_URI
