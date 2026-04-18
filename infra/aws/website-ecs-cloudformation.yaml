@@ -52,22 +52,6 @@ Resources:
     Properties:
       ClusterName: !Sub ${ProjectName}-${EnvironmentName}-cluster
 
-  FrontendLogGroup:
-    Type: AWS::Logs::LogGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      LogGroupName: !Sub /ecs/${ProjectName}/${EnvironmentName}/frontend
-      RetentionInDays: 30
-
-  BackendLogGroup:
-    Type: AWS::Logs::LogGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      LogGroupName: !Sub /ecs/${ProjectName}/${EnvironmentName}/backend
-      RetentionInDays: 30
-
   TaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -221,7 +205,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-create-group: 'true'
-              awslogs-group: !Ref BackendLogGroup
+              awslogs-group: !Sub /ecs/${ProjectName}/${EnvironmentName}/backend
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: backend
 
@@ -246,7 +230,7 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-create-group: 'true'
-              awslogs-group: !Ref FrontendLogGroup
+              awslogs-group: !Sub /ecs/${ProjectName}/${EnvironmentName}/frontend
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: frontend
 
