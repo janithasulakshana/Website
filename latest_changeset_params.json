@@ -1,0 +1,26 @@
+[
+    {
+        "ParameterKey": "PrivateSubnetA",
+        "ParameterValue": "subnet-05ca6949d19308014"
+    },
+    {
+        "ParameterKey": "PrivateSubnetB",
+        "ParameterValue": "subnet-005e61f3014ce214c"
+    },
+    {
+        "ParameterKey": "PublicSubnetB",
+        "ParameterValue": "subnet-005e61f3014ce214c"
+    },
+    {
+        "ParameterKey": "JwtSecretArn",
+        "ParameterValue": "arn:aws:secretsmanager:us-east-1:951869164472:secret:website/dev/jwt-ssFTOr"
+    },
+    {
+        "ParameterKey": "PublicSubnetA",
+        "ParameterValue": "subnet-05ca6949d19308014"
+    },
+    {
+        "ParameterKey": "VpcId",
+        "ParameterValue": "vpc-0923fe3e8c00a297f"
+    }
+]

@@ -24,9 +24,10 @@ Parameters:
     Type: String
   BackendImageUri:
     Type: String
-  JwtSecretArn:
+  JwtSecret:
     Type: String
-    Description: ARN of the AWS Secrets Manager secret containing the JWT secret value
+    NoEcho: true
+    MinLength: 12
   CorsOrigin:
     Type: String
     Default: "*"
@@ -84,10 +85,6 @@ Resources:
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource: !Ref JwtSecretArn
               - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
@@ -214,13 +211,12 @@ Resources:
               Value: '5000'
             - Name: HOST
               Value: 0.0.0.0
+            - Name: JWT_SECRET
+              Value: !Ref JwtSecret
             - Name: CORS_ORIGIN
               Value: !Ref CorsOrigin
             - Name: DATABASE_PATH
               Value: /tmp/bookings.db
-          Secrets:
-            - Name: JWT_SECRET
-              ValueFrom: !Ref JwtSecretArn
           LogConfiguration:
             LogDriver: awslogs
             Options:

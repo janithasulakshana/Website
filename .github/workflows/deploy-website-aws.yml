@@ -117,7 +117,7 @@ jobs:
               PrivateSubnetB="$PRIVATE_SUBNET_B" \
               FrontendImageUri="$FRONTEND_IMAGE_URI" \
               BackendImageUri="$BACKEND_IMAGE_URI" \
-              JwtSecretArn="${{ secrets.AWS_JWT_SECRET_ARN }}" \
+              JwtSecret="${{ secrets.JWT_SECRET }}" \
               CorsOrigin="*"
 
       - name: Show stack failure reason
