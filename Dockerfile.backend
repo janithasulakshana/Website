@@ -1,11 +1,12 @@
-FROM --platform=linux/amd64 node:20-alpine AS builder
+# Build stage: Install deps with build tools
+FROM node:20-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache python3 make g++
 COPY backend/package*.json ./
-ENV SQLITE3_FORCE_BUILD=1
-RUN npm ci --production
+RUN npm ci --production --build-from-source=sqlite3
 
-FROM --platform=linux/amd64 node:20-alpine
+# Runtime stage: Minimal production image
+FROM node:20-alpine
 RUN apk add --no-cache dumb-init
 WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
